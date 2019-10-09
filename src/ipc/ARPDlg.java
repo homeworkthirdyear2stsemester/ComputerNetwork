@@ -1,20 +1,20 @@
 package ipc;
 
-import org.jnetpcap.PcapIf;
-import org.jnetpcap.protocol.lan.Ethernet;
-
-import ipc.FileSimplestDlg.setAddressListener;
-
-import java.awt.*;
-import javax.swing.*;
-import javax.swing.border.EmptyBorder;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import javax.swing.border.TitledBorder;
-import java.awt.event.ActionListener;
+import java.awt.Color;
+import java.awt.EventQueue;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.ArrayList;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
+import javax.swing.UIManager;
+import javax.swing.border.EmptyBorder;
+import javax.swing.border.TitledBorder;
 
 public class ARPDlg extends JFrame implements BaseLayer {
 	public int nUpperLayerCount = 0;
