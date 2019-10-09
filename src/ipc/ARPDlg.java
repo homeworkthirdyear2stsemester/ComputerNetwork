@@ -269,6 +269,5 @@ public class ARPDlg extends JFrame implements BaseLayer {
 				ARPCacheTextArea.setText(result);
 			}
 		}
-
 	}
 }
