@@ -14,8 +14,8 @@ public class ARPDlg extends JFrame implements BaseLayer {
 	public BaseLayer p_UnderLayer = null;
 	public ArrayList<BaseLayer> p_aUpperLayer = new ArrayList<>();
 	private BaseLayer fileUnderLayer;
-
 	private static LayerManager m_LayerMgr = new LayerManager();
+	
 
 	private JTextField ChattingWrite;
 
@@ -43,9 +43,14 @@ public class ARPDlg extends JFrame implements BaseLayer {
 		// *********************************************
 		// TCP, IP, ARP Layer add required
 		// *********************************************
+		
 		m_LayerMgr.AddLayer(new NILayer("NI"));
 		m_LayerMgr.AddLayer(new EthernetLayer("Ethernet"));
+		m_LayerMgr.AddLayer(new ARPLayer("ARP"));
+		m_LayerMgr.AddLayer(new IPLayer("IP"));
+		m_LayerMgr.AddLayer(new TCPLayer("TCP"));
 		m_LayerMgr.AddLayer(new ARPDlg("GUI"));
+		m_LayerMgr.ConnectLayers(" NI ( *Ethernet ( +IP ( *TCP ( *GUI )  -ARP ) *ARP ) )");
 
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
