@@ -8,6 +8,10 @@ public class ARPLayer implements BaseLayer {
     public BaseLayer p_UnderLayer = null;
     public ArrayList<BaseLayer> p_aUpperLayer = new ArrayList<>();
 
+    public ARPLayer(String name){
+        this.pLayerName = name;
+    }
+
     @Override
     public String GetLayerName() {
         return pLayerName;
