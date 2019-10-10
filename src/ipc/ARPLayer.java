@@ -7,7 +7,10 @@ public class ARPLayer implements BaseLayer {
     public String pLayerName = null;
     public BaseLayer p_UnderLayer = null;
     public ArrayList<BaseLayer> p_aUpperLayer = new ArrayList<>();
-
+    
+    public ARPLayer(String name) {
+    	this.pLayerName = name;
+    }
     @Override
     public String GetLayerName() {
         return pLayerName;
@@ -38,7 +41,7 @@ public class ARPLayer implements BaseLayer {
     public void SetUpperLayer(BaseLayer pUpperLayer) {
         if (pUpperLayer == null)
             return;
-        this.p_aUpperLayer.add(nUpperLayerCount++, pUpperLayer);//layer추가
+        this.p_aUpperLayer.add(nUpperLayerCount++, pUpperLayer);//layer異붽�
     }
 
     @Override

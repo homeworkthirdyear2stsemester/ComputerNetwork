@@ -9,8 +9,9 @@ public class TCPLayer implements BaseLayer {
     public ArrayList<BaseLayer> p_aUpperLayer = new ArrayList<>();
     private TCPHeader tcpHeader;
 
-    public TCPLayer() {
+    public TCPLayer(String name) {
         this.tcpHeader = new TCPHeader();
+        this.pLayerName = name;
     }
 
     @Override
@@ -95,7 +96,7 @@ public class TCPLayer implements BaseLayer {
     public void SetUpperLayer(BaseLayer pUpperLayer) {
         if (pUpperLayer == null)
             return;
-        this.p_aUpperLayer.add(nUpperLayerCount++, pUpperLayer);//layer추가
+        this.p_aUpperLayer.add(nUpperLayerCount++, pUpperLayer);//layer異붽�
     }
 
     @Override
