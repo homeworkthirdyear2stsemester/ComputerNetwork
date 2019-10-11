@@ -141,8 +141,10 @@ public class IPLayer implements BaseLayer {
         String[] hostAddressInString = local.getHostAddress().split("[.]");
 
         byte[] temp = new byte[4];
-        for (int i = 0; i < 4; i++)
-            temp[i] = Byte.parseByte(hostAddressInString[i]);
+        for (int i = 0; i < 4; i++) {
+            int eachAddress = Integer.parseInt(hostAddressInString[i]);
+            temp[i] = (byte) (eachAddress & 0xFF);
+        }
 
         return temp;
     }
