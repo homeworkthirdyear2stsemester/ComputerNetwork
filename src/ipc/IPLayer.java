@@ -4,6 +4,8 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 
+import ipc.ARPDlg.setAddressListener;
+
 public class IPLayer implements BaseLayer {
     public int nUpperLayerCount = 0;
     public String pLayerName = null;
@@ -12,10 +14,9 @@ public class IPLayer implements BaseLayer {
     _IP_Header ip_header = new _IP_Header();
 
     private static LayerManager m_LayerMgr = new LayerManager();
-
+    
     public IPLayer(String pName) {
         pLayerName = pName;
-
         SetIpSrcAddress(GetIpAddress());//내 IP주소 세팅
     }
 
