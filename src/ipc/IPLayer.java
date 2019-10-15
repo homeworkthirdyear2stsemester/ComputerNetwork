@@ -8,8 +8,9 @@ import ipc.ARPDlg.setAddressListener;
 
 public class IPLayer implements BaseLayer {
     public int nUpperLayerCount = 0;
+    public int nUnderLayerCount = 0;
     public String pLayerName = null;
-    public BaseLayer p_UnderLayer = null;
+    public ArrayList<BaseLayer>  p_aUnderLayer = new ArrayList<BaseLayer>();
     public ArrayList<BaseLayer> p_aUpperLayer = new ArrayList<BaseLayer>();
     _IP_Header ip_header = new _IP_Header();
 
@@ -32,11 +33,12 @@ public class IPLayer implements BaseLayer {
 
         return this.GetUnderLayer().Send(temp, length + 20);    //ARP Layer에게 전달
     }
-
+    
+    
     public byte[] ObjToByte20(_IP_Header ip_header, byte[] input, short length) {
 
         byte[] buf = new byte[length + 20];
-
+        
         buf[0] = ip_header.ip_verlen;
         buf[1] = ip_header.ip_tos;
         buf[2] |= (byte) ((length >> 8) & 0xFF);
@@ -66,13 +68,13 @@ public class IPLayer implements BaseLayer {
                 || this.ip_header.ip_id != (short) ((input[4] & 0xFF) << 8 + input[5] & 0xFF)
                 || this.ip_header.ip_proto != input[9])
             return false;
+        
 
-
-        for (int i = 0; i < 4; i++)
+        for (int i = 0; i < 4; i++) {
             if (this.ip_header.ip_srcaddr.addr[i] != input[16 + i]) { //input의 target IP주소가 나의 IP주소와 일치하는지 확인
-                //return this.GetUnderLayer().proxySend(input, tot_len); //일치하지 않으면 프록시
+                return ((EthernetLayer)this.GetUnderLayer(1)).proxySend(input, input.length); //일치하지 않으면 이더넷에서 프록시send 호출
             }
-
+        }
         //일치하면 demultiplex하고 상위 레이어로 올림
         short tot_len = (short) (((input[2] & 0xFF) << 8) + input[3] & 0xFF);
         byte[] temp = RemoveCappHeader(input, tot_len);
@@ -83,12 +85,14 @@ public class IPLayer implements BaseLayer {
     public String GetLayerName() {
         return pLayerName;
     }
+    
 
-    @Override
-    public BaseLayer GetUnderLayer() {
-        if (p_UnderLayer == null)
-            return null;
-        return p_UnderLayer;
+
+    public BaseLayer GetUnderLayer(int nindex) {
+    	if(nindex <0 || nindex > nUnderLayerCount || nUnderLayerCount < 0)
+    		return null;
+    	return p_aUnderLayer.get(nindex);
+    	
     }
 
     @Override
@@ -102,7 +106,7 @@ public class IPLayer implements BaseLayer {
     public void SetUnderLayer(BaseLayer pUnderLayer) {
         if (pUnderLayer == null)
             return;
-        this.p_UnderLayer = pUnderLayer;
+        this.p_aUnderLayer.add(nUnderLayerCount++, pUnderLayer); 
     }
 
     @Override
@@ -146,7 +150,6 @@ public class IPLayer implements BaseLayer {
             int eachAddress = Integer.parseInt(hostAddressInString[i]);
             temp[i] = (byte) (eachAddress & 0xFF);
         }
-
         return temp;
     }
 
@@ -193,4 +196,10 @@ public class IPLayer implements BaseLayer {
             }
         }
     }
+
+	@Override
+	public BaseLayer GetUnderLayer() {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }
