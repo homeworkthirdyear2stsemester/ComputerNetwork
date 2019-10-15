@@ -7,6 +7,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class ARPDlg extends JFrame implements BaseLayer {
 	public int nUpperLayerCount = 0;
@@ -15,7 +16,6 @@ public class ARPDlg extends JFrame implements BaseLayer {
 	public ArrayList<BaseLayer> p_aUpperLayer = new ArrayList<>();
 	private BaseLayer fileUnderLayer;
 	private static LayerManager m_LayerMgr = new LayerManager();
-	
 
 	private JTextField ChattingWrite;
 
@@ -27,13 +27,65 @@ public class ARPDlg extends JFrame implements BaseLayer {
 	private JTextArea ARPCacheTextArea;
 	private JButton AllDeleteButton;
 	private JButton ItemDeleteButton;
+	private JTextArea IPSettingArea;
+	private JTextArea MacSettingArea;
+	private JButton SettingButton;
+	
+	public byte[] MyIPAddress;
+	public byte[] MyMacAddress;
+	public byte[] TargetIPAddress;
+	public byte[] getMyIPAddress() {
+		return MyIPAddress;
+	}
+	public void setMyIPAddress(byte[] myIPAddress) {
+		MyIPAddress = myIPAddress;
+	}
+	public byte[] getMyMacAddress() {
+		return MyMacAddress;
+	}
+	public void setMyMacAddress(byte[] myMacAddress) {
+		MyMacAddress = myMacAddress;
+	}
+	public byte[] getTargetIPAddress() {
+		return TargetIPAddress;
+	}
+	public void setTargetIPAddress(byte[] targetIPAddress) {
+		TargetIPAddress = targetIPAddress;
+	}
+	
+	public static HashMap<String, String> ARPTableForDlg;
 
 	public static void getMacAddressFromARPLayer(String IPAddress, String MacAddress) {
-
+		
+	}
+	
+	public static void updateARPTable(HashMap<String, String> data) {
+		for(String key : data.keySet()) {
+			if(ARPTableForDlg.containsKey(key)) {
+				ARPTableForDlg.replace(key, data.get(key));
+			}
+			else {
+				ARPTableForDlg.put(key, data.get(key));
+			}
+		}
+		updateARPTable(ARPTableForDlg);
+	}
+	
+	private void updateTableToGUI(HashMap<String, String> data) {
+		String result = null;
+		for(String key : data.keySet()) {
+			if(data.get(key).equals("Incomplete")) {
+				result+=key+"          ??????????                         Incomplete\n";
+			} else {
+				result+=key+"          "+data.get(key)+"                         Complete\n";
+			}
+		}
+		ARPCacheTextArea.setText(result);
 	}
 
 	public ARPDlg(String pName) {
 		this.pLayerName = pName;
+		this.ARPTableForDlg = new HashMap<String, String>();
 	}
 
 	/**
@@ -43,7 +95,7 @@ public class ARPDlg extends JFrame implements BaseLayer {
 		// *********************************************
 		// TCP, IP, ARP Layer add required
 		// *********************************************
-		
+
 		m_LayerMgr.AddLayer(new NILayer("NI"));
 		m_LayerMgr.AddLayer(new EthernetLayer("Ethernet"));
 		m_LayerMgr.AddLayer(new ARPLayer("ARP"));
@@ -51,7 +103,8 @@ public class ARPDlg extends JFrame implements BaseLayer {
 		m_LayerMgr.AddLayer(new TCPLayer("TCP"));
 		m_LayerMgr.AddLayer(new ARPDlg("GUI"));
 		m_LayerMgr.ConnectLayers(" NI ( *Ethernet ( +IP ( *TCP ( *GUI )  -ARP ) *ARP ) )");
-
+		
+		
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
@@ -70,7 +123,7 @@ public class ARPDlg extends JFrame implements BaseLayer {
 	public ARPDlg() {
 		setTitle("TestARP");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 867, 502);
+		setBounds(100, 100, 867, 593);
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		setContentPane(contentPane);
@@ -160,12 +213,40 @@ public class ARPDlg extends JFrame implements BaseLayer {
 				System.exit(0);
 			}
 		});
-		QuitButton.setBounds(293, 406, 105, 27);
+		QuitButton.setBounds(291, 499, 105, 27);
 		contentPane.add(QuitButton);
 
 		JButton CancelButton = new JButton("취소");
-		CancelButton.setBounds(412, 406, 105, 27);
+		CancelButton.setBounds(412, 499, 105, 27);
 		contentPane.add(CancelButton);
+
+		JPanel IPandMacSettingPanel = new JPanel();
+		IPandMacSettingPanel.setBorder(
+				new TitledBorder(null, "Setting IP & Mac", TitledBorder.LEADING, TitledBorder.TOP, null, null));
+		IPandMacSettingPanel.setBounds(14, 398, 384, 96);
+		contentPane.add(IPandMacSettingPanel);
+		IPandMacSettingPanel.setLayout(null);
+
+		SettingButton = new JButton("Setting");
+		SettingButton.addActionListener(new setAddressListener());
+		SettingButton.setBounds(293, 40, 77, 27);
+		IPandMacSettingPanel.add(SettingButton);
+
+		IPSettingArea = new JTextArea();
+		IPSettingArea.setBounds(79, 24, 200, 24);
+		IPandMacSettingPanel.add(IPSettingArea);
+
+		JLabel label = new JLabel("IP 주소");
+		label.setBounds(14, 26, 62, 18);
+		IPandMacSettingPanel.add(label);
+
+		MacSettingArea = new JTextArea();
+		MacSettingArea.setBounds(79, 60, 200, 24);
+		IPandMacSettingPanel.add(MacSettingArea);
+
+		JLabel lblMac = new JLabel("Mac 주소");
+		lblMac.setBounds(14, 62, 62, 18);
+		IPandMacSettingPanel.add(lblMac);
 	}
 
 	@Override
@@ -221,17 +302,38 @@ public class ARPDlg extends JFrame implements BaseLayer {
 		}
 	}
 
-	class setAddressListener implements ActionListener {
-
+	public class setAddressListener implements ActionListener {
+		
+		private byte[] getIPByteArray(String[] data) {
+			byte[] newData = new byte[data.length];
+			for(int i = 0; i < data.length; i++) {
+				int temp = Integer.parseInt(data[i]);
+				newData[i] = (byte) (temp & 0xFF);
+			}
+			return newData;
+		}
+		private byte[] getMacByteArray(String[] data) {
+			byte[] newData = new byte[data.length];
+			for(int i = 0; i < data.length; i++) {
+				int temp = Integer.parseInt(data[i], 16);
+				newData[i] = (byte) (temp & 0xFF);
+			}
+			return newData;
+		}
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			// TODO Auto-generated method stub
+			TCPLayer tempTCPLayer = (TCPLayer)m_LayerMgr.GetLayer("TCP");
 			if (e.getSource() == ARPCacheSendButton) {
 				String IPAddress = IPAddressArea.getText();
+				byte[] IPAddressByteArray = getIPByteArray(IPAddress.split("\\."));
+				setTargetIPAddress(IPAddressByteArray);
 				if (!IPAddress.equals("")) {
 					IPAddress = IPAddress + "          ??????????                         Incomplete\n";
 					ARPCacheTextArea.append(IPAddress);
 					IPAddressArea.setText("");
+					ARPTableForDlg.put(IPAddress, "Incomplete");
+					//Send Data to TCP Layer!!!!!!!!!!!
 				}
 			}
 			if (e.getSource() == AllDeleteButton) {
@@ -258,13 +360,36 @@ public class ARPDlg extends JFrame implements BaseLayer {
 				}
 				String[] ARPCacheList = ARPCacheTextArea.getText().split("\n");
 				String result = "";
-				for(int i = 0; i < ARPCacheList.length; i++) {
-					if(i != indexValueInteger -1) {
+				for (int i = 0; i < ARPCacheList.length; i++) {
+					if (i != indexValueInteger - 1) {
 						result = result + ARPCacheList[i] + "\n";
 					}
 				}
 				ARPCacheTextArea.setText(result);
 			}
+			if(e.getSource() == SettingButton) {
+				if(IPSettingArea.getText().equals("") || MacSettingArea.getText().equals("")) {
+					JOptionPane.showMessageDialog(null, "IP와 Mac주소를 입력하세요.");
+					return;
+				}
+				if(!SettingButton.getText().equals("Reset")) {
+				String IPAddress = IPSettingArea.getText();
+				String MacAddress = MacSettingArea.getText();
+				byte[] IPByteArray = getIPByteArray(IPAddress.split("\\."));
+				byte[] MacByteArray = getMacByteArray(MacAddress.split(":"));
+				setMyIPAddress(IPByteArray);
+				setMyMacAddress(MacByteArray);
+				IPSettingArea.enable(false);
+				MacSettingArea.enable(false);
+				SettingButton.setText("Reset");
+				} else {
+					IPSettingArea.setText("");
+					MacSettingArea.setText("");
+					IPSettingArea.enable(true);
+					MacSettingArea.enable(true);
+				}
+			}
 		}
 	}
+	
 }
