@@ -35,11 +35,11 @@ public class IPLayer implements BaseLayer {
         byte[] temp = ObjToByte21(this.ip_header, input, length); //multiplexing
 
 
-        if (((ARPLayer) this.GetUnderLayer(1)).containMacAddress(this.ip_header.ip_dstaddr.addr))//목적지 IP주소가 캐싱되어있으면
-            return ((EthernetLayer) this.GetUnderLayer(0)).Send(temp, length + 21);//데이터이므로 Ethernet Layer로 전달
-        else return ((ARPLayer) this.GetUnderLayer(1)).Send(temp, length + 21);    //아니면 ARP 요청이므로 ARP Layer로 전달
+//        if (((ARPLayer) this.GetUnderLayer(1)).containMacAddress(this.ip_header.ip_dstaddr.addr))//목적지 IP주소가 캐싱되어있으면
+//            return ((EthernetLayer) this.GetUnderLayer(0)).Send(temp, length + 21);//데이터이므로 Ethernet Layer로 전달
+//        else return ((ARPLayer) this.GetUnderLayer(1)).Send(temp, length + 21);    //아니면 ARP 요청이므로 ARP Layer로 전달
 
-
+        return false;
     }
 
     private byte[] ObjToByte21(_IP_Header ip_header, byte[] input, int length) { // 헤더 추가부분
