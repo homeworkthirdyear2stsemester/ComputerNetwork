@@ -60,14 +60,6 @@ public class FileSimplestDlg extends JFrame implements BaseLayer {
 
     String Text;
 
-    public static void main(String[] args) {
-        m_LayerMgr.AddLayer(new NILayer("NI"));
-        m_LayerMgr.AddLayer(new EthernetLayer("Ethernet"));
-        m_LayerMgr.AddLayer(new ChatAppLayer("ChatAppLayer"));
-        m_LayerMgr.AddLayer(new FileSimplestDlg("GUI"));
-        m_LayerMgr.ConnectLayers(" NI ( *Ethernet ( *ChatAppLayer ( *GUI ) ) ) "); // 각 Layer연결
-    }
-
     public FileSimplestDlg(String pName) {
         pLayerName = pName;
 
