@@ -34,13 +34,17 @@ public class ARPDlg extends JFrame implements BaseLayer {
 	private JButton AddButton;
 	private JTextArea ProxyTextArea;
 	private JButton DeleteButton;
+	private JButton GratuitousARPSendButton;
+	private JTextArea HWAddressArea;
 
 	// Proxy ARP
 	public ArrayList<Proxy> ProxyTable = new ArrayList<ARPDlg.Proxy>();
-
+	
+	//Base ARP
 	public byte[] MyIPAddress;
 	public byte[] MyMacAddress;
 	public byte[] TargetIPAddress;
+	
 
 	public byte[] getMyIPAddress() {
 		return MyIPAddress;
@@ -67,6 +71,9 @@ public class ARPDlg extends JFrame implements BaseLayer {
 	}
 
 	public static HashMap<String, String> ARPTableForDlg;
+	
+	// Gratuitous
+	public static byte[] GratuitousAddress;
 
 	public static void getMacAddressFromARPLayer(String IPAddress, String MacAddress) {
 
@@ -209,11 +216,11 @@ public class ARPDlg extends JFrame implements BaseLayer {
 		lblHw.setBounds(14, 47, 71, 18);
 		GratuitousARPPanel.add(lblHw);
 
-		JTextArea HWAddressArea = new JTextArea();
+		HWAddressArea = new JTextArea();
 		HWAddressArea.setBounds(99, 45, 202, 24);
 		GratuitousARPPanel.add(HWAddressArea);
 
-		JButton GratuitousARPSendButton = new JButton("Send");
+		GratuitousARPSendButton = new JButton("Send");
 		GratuitousARPSendButton.addActionListener(new setAddressListener());
 		GratuitousARPSendButton.setBounds(334, 43, 77, 27);
 		GratuitousARPPanel.add(GratuitousARPSendButton);
@@ -431,6 +438,15 @@ public class ARPDlg extends JFrame implements BaseLayer {
 			}
 			if (e.getSource() == AddButton) {
 				new ProxyDlg();
+			}
+			if(e.getSource() == GratuitousARPSendButton) {
+				String HWAddress = HWAddressArea.getText();
+				if(HWAddress.equals("")) {
+					JOptionPane.showMessageDialog(null, "정확한 주소를 입력해주세요.");
+				} else {
+					GratuitousAddress = getMacByteArray(HWAddress.split(":"));
+					HWAddressArea.setText("");
+				}
 			}
 		}
 	}
