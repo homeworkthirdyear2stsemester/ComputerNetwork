@@ -25,7 +25,7 @@ public class ARPDlg extends JFrame implements BaseLayer {
     private JTextArea IPAddressArea;
     private JPanel contentPane;
     private JButton ARPCacheSendButton;
-    private JTextArea ARPCacheTextArea;
+    private static JTextArea ARPCacheTextArea;
     private JButton AllDeleteButton;
     private JButton ItemDeleteButton;
     private JTextArea IPSettingArea;
@@ -36,10 +36,10 @@ public class ARPDlg extends JFrame implements BaseLayer {
     private JButton DeleteButton;
     private JButton GratuitousARPSendButton;
     private JTextArea HWAddressArea;
+    private JButton CancelButton;
 
     // Proxy ARP
 
-    public static ArrayList<Proxy> ProxyTable = new ArrayList<ARPDlg.Proxy>();
 
     //Base ARP
     public static byte[] MyIPAddress;
@@ -71,82 +71,52 @@ public class ARPDlg extends JFrame implements BaseLayer {
         TargetIPAddress = targetIPAddress;
     }
 
-    public static HashMap<String, String> ARPTableForDlg;
 
     // Gratuitous
     public static byte[] GratuitousAddress;
 
-    public static void getMacAddressFromARPLayer(String IPAddress, String MacAddress) {
 
-    }
-
-    public static void updateARPTable(HashMap<String, String> data) {
-        for (String key : data.keySet()) {
-            if (ARPTableForDlg.containsKey(key)) {
-                ARPTableForDlg.replace(key, data.get(key));
+    private static String MacToString(byte[] data) {
+        String result = "";
+        for (int i = 0; i < data.length; i++) {
+            if (i != data.length - 1) {
+                result += String.valueOf(data[i]) + ":";
             } else {
-                ARPTableForDlg.put(key, data.get(key));
+                result += String.valueOf(data[i]);
             }
         }
-        updateARPTable(ARPTableForDlg);
+        return result;
     }
 
-    private void updateTableToGUI(HashMap<String, String> data) {
-        String result = null;
-        for (String key : data.keySet()) {
-            if (data.get(key).equals("Incomplete")) {
-                result += key + "          ??????????                         Incomplete\n";
+    public static void updateARPTableToGUI() {
+        //arp_table
+        String result = "";
+        for (String key : ARPLayer.arp_table.keySet()) {
+            if (ARPLayer.arp_table.get(key) != null) {
+                result += key + "          " + MacToString(ARPLayer.arp_table.get(key)) + "                    " + "Complete";
             } else {
-                result += key + "          " + data.get(key) + "                         Complete\n";
+                result += key + "          " + "??????????" + "                    " + "Incomplete";
             }
         }
         ARPCacheTextArea.setText(result);
+
     }
+
 
     public ARPDlg(String pName) {
         this.pLayerName = pName;
-        this.ARPTableForDlg = new HashMap<String, String>();
     }
 
     /**
      * Launch the application.
      */
-    public static void main(String[] args) {
-        // *********************************************
-        // TCP, IP, ARP Layer add required
-        // *********************************************
-
-        m_LayerMgr.AddLayer(new NILayer("NI"));
-        m_LayerMgr.AddLayer(new EthernetLayer("Ethernet"));
-        m_LayerMgr.AddLayer(new ARPLayer("ARP"));
-        m_LayerMgr.AddLayer(new IPLayer("IP"));
-        m_LayerMgr.AddLayer(new TCPLayer("TCP"));
-        m_LayerMgr.AddLayer(new ChatAppLayer("Chat"));
-        m_LayerMgr.AddLayer(new FileAppLayer("File"));
-        m_LayerMgr.AddLayer(new FileSimplestDlg("FileGUI"));
-        m_LayerMgr.AddLayer(new ARPDlg("ARPGUI"));
-        m_LayerMgr.ConnectLayers(" NI ( *Ethernet ( *IP ( *TCP ( *Chat ( *FileGUI ) *File ( +FileGUI ) *ARPGUI )  -ARP ) *ARP ) )");
-
-        ((FileSimplestDlg) m_LayerMgr.GetLayer("FileGUI")).setFileUnderLayer(m_LayerMgr.GetLayer("File"));
-
-        EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                try {
-                    ARPDlg frame = new ARPDlg();
-                    frame.setVisible(true);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        });
-    }
 
     /**
      * Create the frame.
      */
     public ARPDlg() {
         setTitle("TestARP");
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
         setBounds(100, 100, 867, 593);
         contentPane = new JPanel();
         contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
@@ -232,16 +202,13 @@ public class ARPDlg extends JFrame implements BaseLayer {
         GratuitousARPPanel.add(GratuitousARPSendButton);
 
         JButton QuitButton = new JButton("종료");
-        QuitButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                System.exit(0);
-            }
-        });
+        QuitButton.addActionListener(e -> System.exit(0));
         QuitButton.setBounds(291, 499, 105, 27);
         contentPane.add(QuitButton);
 
-        JButton CancelButton = new JButton("취소");
+        CancelButton = new JButton("취소");
         CancelButton.setBounds(412, 499, 105, 27);
+        CancelButton.addActionListener(new setAddressListener());
         contentPane.add(CancelButton);
 
         JPanel IPandMacSettingPanel = new JPanel();
@@ -271,6 +238,7 @@ public class ARPDlg extends JFrame implements BaseLayer {
         JLabel lblMac = new JLabel("Mac 주소");
         lblMac.setBounds(14, 62, 62, 18);
         IPandMacSettingPanel.add(lblMac);
+        setVisible(true);
     }
 
     @Override
@@ -346,23 +314,29 @@ public class ARPDlg extends JFrame implements BaseLayer {
 
     public class setAddressListener implements ActionListener {
 
+
         @Override
         public void actionPerformed(ActionEvent e) {
             // TODO Auto-generated method stub
             TCPLayer tempTCPLayer = (TCPLayer) m_LayerMgr.GetLayer("TCP");
-            if (e.getSource() == ARPCacheSendButton) {
+            if (e.getSource() == ARPCacheSendButton) { // 수정
                 String IPAddress = IPAddressArea.getText();
                 byte[] IPAddressByteArray = getIPByteArray(IPAddress.split("\\."));
                 setTargetIPAddress(IPAddressByteArray);
-                if (!IPAddress.equals("")) {
-                    IPAddress = IPAddress + "          ??????????                         Incomplete\n";
+
+                if (!IPAddress.equals("") && (!ARPLayer.containMacAddress(IPAddressByteArray))) {
+                    IPAddress = IPAddress + "          ??????????          Incomplete\n";
                     ARPCacheTextArea.append(IPAddress);
                     IPAddressArea.setText("");
-                    ARPTableForDlg.put(IPAddress, "Incomplete");
                     // Send Data to TCP Layer!!!!!!!!!!!
+                } else if (ARPLayer.containMacAddress(IPAddressByteArray)) {
+                    byte[] macAddress = ARPLayer.getMacAddress(IPAddressByteArray);
+                    IPAddress = IPAddress + "          " + macAddress + "                    Complete\n";
+                    ARPCacheTextArea.append(IPAddress);
+                    IPAddressArea.setText("");
                 }
             }
-            if (e.getSource() == AllDeleteButton) {
+            if (e.getSource() == AllDeleteButton) { // 수정
                 if (ARPCacheTextArea.getText().equals("")) {
                     JOptionPane.showMessageDialog(null, "삭제할 ARP가 존재하지 않습니다.");
                     return;
@@ -371,9 +345,10 @@ public class ARPDlg extends JFrame implements BaseLayer {
                         JOptionPane.OK_CANCEL_OPTION);
                 if (result == 0) {
                     ARPCacheTextArea.setText("");
+                    ARPLayer.RemoveAll_Arp();
                 }
             }
-            if (e.getSource() == ItemDeleteButton) {
+            if (e.getSource() == ItemDeleteButton) { // 수정
                 if (ARPCacheTextArea.getText().equals("")) {
                     JOptionPane.showMessageDialog(null, "삭제할 ARP가 존재하지 않습니다.");
                     return;
@@ -385,6 +360,7 @@ public class ARPDlg extends JFrame implements BaseLayer {
                     indexValueInteger = Integer.parseInt(indexValue);
                 }
                 String[] ARPCacheList = ARPCacheTextArea.getText().split("\n");
+                String IPAddress = ARPCacheList[indexValueInteger - 1].split("          ")[0];
                 String result = "";
                 for (int i = 0; i < ARPCacheList.length; i++) {
                     if (i != indexValueInteger - 1) {
@@ -392,8 +368,9 @@ public class ARPDlg extends JFrame implements BaseLayer {
                     }
                 }
                 ARPCacheTextArea.setText(result);
+                ARPLayer.Remove_Arp(getIPByteArray(IPAddress.split("\\.")));
             }
-            if (e.getSource() == DeleteButton) {
+            if (e.getSource() == DeleteButton) { //수정
                 if (ProxyTextArea.getText().equals("")) {
                     JOptionPane.showMessageDialog(null, "삭제할 Proxy가 존재하지 않습니다.");
                     return;
@@ -410,12 +387,8 @@ public class ARPDlg extends JFrame implements BaseLayer {
                     if (i != indexValueInteger - 1) {
                         result = result + ProxyData[i] + "\n";
                     } else {
-                        String targetName = ProxyData[i].split("       ")[0];
-                        for (int j = 0; j < ProxyTable.size(); j++) {
-                            if (ProxyTable.get(j).DeviceName.equals(targetName)) {
-                                ProxyTable.remove(j);
-                            }
-                        }
+                        String targetName = ProxyData[i].split("       ")[1];
+                        ARPLayer.Remove_Proxy(getMacByteArray(targetName.split("\\.")));
                     }
                 }
                 ProxyTextArea.setText(result);
@@ -453,6 +426,9 @@ public class ARPDlg extends JFrame implements BaseLayer {
                     GratuitousAddress = getMacByteArray(HWAddress.split(":"));
                     HWAddressArea.setText("");
                 }
+            }
+            if(e.getSource() == CancelButton){
+                setVisible(false);
             }
         }
     }
@@ -504,12 +480,11 @@ public class ARPDlg extends JFrame implements BaseLayer {
                         ProxyTextArea.append(DeviceName + "       " + IPName + "       " + EthernetName + "\n");
                         byte[] IPArray = getIPByteArray(IPName.split("\\."));
                         byte[] EthernetArray = getMacByteArray(EthernetName.split(":"));
-                        Proxy proxyData = new Proxy(DeviceName, IPArray, EthernetArray);
-                        ProxyTable.add(proxyData);
                         DeviceText.setText("");
                         IPText.setText("");
                         EthernetText.setText("");
                         setVisible(false);
+                        ARPLayer.Add_Proxy(IPArray, EthernetArray);
                     }
                 }
             });
@@ -530,42 +505,5 @@ public class ARPDlg extends JFrame implements BaseLayer {
 
             setVisible(true);
         }
-    }
-
-    public class Proxy {
-        String DeviceName;
-        byte[] IPAddress;
-        byte[] MacAddress;
-
-        public Proxy(String name, byte[] ip, byte[] ethernet) {
-            this.DeviceName = name;
-            this.IPAddress = ip;
-            this.MacAddress = ethernet;
-        }
-
-        public String getDeviceName() {
-            return DeviceName;
-        }
-
-        public void setDeviceName(String deviceName) {
-            DeviceName = deviceName;
-        }
-
-        public byte[] getIPAddress() {
-            return IPAddress;
-        }
-
-        public void setIPAddress(byte[] iPAddress) {
-            IPAddress = iPAddress;
-        }
-
-        public byte[] getMacAddress() {
-            return MacAddress;
-        }
-
-        public void setMacAddress(byte[] macAddress) {
-            MacAddress = macAddress;
-        }
-
     }
 }
