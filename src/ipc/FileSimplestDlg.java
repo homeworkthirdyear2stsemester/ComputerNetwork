@@ -19,6 +19,7 @@ public class FileSimplestDlg extends JFrame implements BaseLayer {
     public BaseLayer p_UnderLayer = null;
     public ArrayList<BaseLayer> p_aUpperLayer = new ArrayList<>();
     private BaseLayer fileUnderLayer;
+    private JButton CacheTableButton;
 
     private static LayerManager m_LayerMgr = new LayerManager();
 
@@ -207,6 +208,11 @@ public class FileSimplestDlg extends JFrame implements BaseLayer {
         this.progressBar.setStringPainted(true);
         filePanel.add(this.progressBar);
 
+        CacheTableButton = new JButton("CacheTable");
+        CacheTableButton.addActionListener(new setAddressListener());
+        CacheTableButton.setBounds(10, 312, 170, 27);
+        settingPanel.add(CacheTableButton);
+
         sendFileButton = new JButton("transfer");
         sendFileButton.setBounds(270, 50, 80, 20);
         sendFileButton.addActionListener(new setAddressListener());
@@ -257,9 +263,9 @@ public class FileSimplestDlg extends JFrame implements BaseLayer {
         @Override
         public void actionPerformed(ActionEvent e) {
             final JFileChooser fileChooser = new JFileChooser();
-            ChatAppLayer tempChatAppLayer = (ChatAppLayer) GetUnderLayer();
-            EthernetLayer tempEthernetLayer = (EthernetLayer) tempChatAppLayer.GetUnderLayer();
-            NILayer tempNILayer = (NILayer) tempEthernetLayer.GetUnderLayer();
+            ChatAppLayer tempChatAppLayer = (ChatAppLayer) m_LayerMgr.GetLayer("Chat");
+            EthernetLayer tempEthernetLayer = (EthernetLayer) m_LayerMgr.GetLayer("Ethernet");
+            NILayer tempNILayer = (NILayer) m_LayerMgr.GetLayer("NI");
             if (e.getSource() == Setting_Button) {
                 if (e.getActionCommand().equals("Setting")) {
                     String srcMacNumber = srcAddress.getText();
@@ -309,6 +315,8 @@ public class FileSimplestDlg extends JFrame implements BaseLayer {
                     fileUrl.setText(file.getPath());
                 }
                 sendFileButton.setEnabled(true);
+            } else if (e.getSource() == CacheTableButton) {
+                new ARPDlg();
             }
         }
 
@@ -388,5 +396,24 @@ public class FileSimplestDlg extends JFrame implements BaseLayer {
             this.macAddressStr = macAddressStr;
             this.portNumber = portNumberOfMac;
         }
+    }
+
+    public static void main(String[] args) {
+        // *********************************************
+        // TCP, IP, ARP Layer add required
+        // *********************************************
+
+        m_LayerMgr.AddLayer(new NILayer("NI"));
+        m_LayerMgr.AddLayer(new EthernetLayer("Ethernet"));
+        m_LayerMgr.AddLayer(new ARPLayer("ARP"));
+        m_LayerMgr.AddLayer(new IPLayer("IP"));
+        m_LayerMgr.AddLayer(new TCPLayer("TCP"));
+        m_LayerMgr.AddLayer(new ChatAppLayer("Chat"));
+        m_LayerMgr.AddLayer(new FileAppLayer("File"));
+        m_LayerMgr.AddLayer(new FileSimplestDlg("FileGUI"));
+        m_LayerMgr.AddLayer(new ARPDlg("ARPGUI"));
+        m_LayerMgr.ConnectLayers(" NI ( *Ethernet ( *IP ( *TCP ( *Chat ( *FileGUI ) *File ( +FileGUI ) *ARPGUI )  -ARP ) *ARP ) )");
+
+        ((FileSimplestDlg) m_LayerMgr.GetLayer("FileGUI")).setFileUnderLayer(m_LayerMgr.GetLayer("File"));
     }
 }
