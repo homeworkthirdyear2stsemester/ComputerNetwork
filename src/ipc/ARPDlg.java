@@ -38,13 +38,14 @@ public class ARPDlg extends JFrame implements BaseLayer {
 	private JTextArea HWAddressArea;
 
 	// Proxy ARP
-	public ArrayList<Proxy> ProxyTable = new ArrayList<ARPDlg.Proxy>();
+
+	public static ArrayList<Proxy> ProxyTable = new ArrayList<ARPDlg.Proxy>();
 	
 	//Base ARP
-	public byte[] MyIPAddress;
-	public byte[] MyMacAddress;
-	public byte[] TargetIPAddress;
-	
+	public static byte[] MyIPAddress;
+	public static byte[] MyMacAddress;
+	public static byte[] TargetIPAddress;
+
 
 	public byte[] getMyIPAddress() {
 		return MyIPAddress;
