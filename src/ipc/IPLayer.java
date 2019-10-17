@@ -13,19 +13,8 @@ public class IPLayer implements BaseLayer {
     private _IP_Header ip_header = new _IP_Header();
     // 1 : ARP, 0 : Ethernet
 
-    //IP주소 변수
-    private byte[] src_ip_addr;
-
-
     public IPLayer(String pName) {
         pLayerName = pName;
-        src_ip_addr = GetIpAddress();
-        SetIpSrcAddress(src_ip_addr);//내 IP주소 세팅
-    }
-
-    //내 IP주소 리턴
-    public byte[] get_IP_addr() {
-        return src_ip_addr;
     }
 
     private byte[] RemoveCappHeader(byte[] input, int length) {
@@ -41,8 +30,8 @@ public class IPLayer implements BaseLayer {
         this.ip_header.ip_dstaddr.addr = new byte[4]; //헤더 주소 초기화
         this.ip_header.ip_srcaddr.addr = new byte[4];
 
-        SetIpSrcAddress(src_ip_addr);
-        SetIpDstAddress(((ARPDlg) this.GetUpperLayer(1)).TargetIPAddress);
+        SetIpSrcAddress(((ARPDlg) this.GetUpperLayer(1)).getMyIPAddress());
+        SetIpDstAddress(((ARPDlg) this.GetUpperLayer(1)).getTargetIPAddress());
         byte[] temp = ObjToByte21(this.ip_header, input, length); //multiplexing
 
 
@@ -159,25 +148,6 @@ public class IPLayer implements BaseLayer {
     public void SetIpDstAddress(byte[] dstAddress) {
         ip_header.ip_dstaddr.addr = dstAddress;
 
-    }
-
-    private byte[] GetIpAddress() {
-
-        InetAddress local = null;
-        try {
-            local = InetAddress.getLocalHost();
-        } catch (UnknownHostException e) {
-            e.printStackTrace();
-        }
-        String[] hostAddressInString = local.getHostAddress().split("[.]");
-
-        byte[] temp = new byte[4];
-        for (int i = 0; i < 4; i++) {
-            int eachAddress = Integer.parseInt(hostAddressInString[i]);
-            temp[i] = (byte) (eachAddress & 0xFF);
-        }
-
-        return temp;
     }
 
     // Header 자료구조
