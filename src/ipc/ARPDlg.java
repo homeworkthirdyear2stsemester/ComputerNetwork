@@ -89,9 +89,9 @@ public class ARPDlg extends JFrame implements BaseLayer {
         String result = "";
         for (String key : ARPLayer.arp_table.keySet()) {
             if (ARPLayer.arp_table.get(key).length != 1) {
-                result += key + "          " + MacToString(ARPLayer.arp_table.get(key)) + "                    " + "Complete";
+                result += key + "          " + MacToString(ARPLayer.arp_table.get(key)) + "                    " + "Complete\n";
             } else {
-                result += key + "          " + "??????????" + "                    " + "Incomplete";
+                result += key + "          " + "??????????" + "                    " + "Incomplete\n";
             }
         }
         ARPCacheTextArea.setText(result);
