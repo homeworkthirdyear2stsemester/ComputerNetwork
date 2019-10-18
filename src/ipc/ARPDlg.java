@@ -3,12 +3,10 @@ package ipc;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.TitledBorder;
-
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
-import java.util.HashMap;
 
 public class ARPDlg extends JFrame implements BaseLayer {
     public int nUpperLayerCount = 0;
@@ -317,7 +315,6 @@ public class ARPDlg extends JFrame implements BaseLayer {
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            // TODO Auto-generated method stub
             TCPLayer tempTCPLayer = (TCPLayer) m_LayerMgr.GetLayer("TCP");
             if (e.getSource() == ARPCacheSendButton) { // 수정
                 String IPAddress = IPAddressArea.getText();
@@ -427,7 +424,7 @@ public class ARPDlg extends JFrame implements BaseLayer {
                     HWAddressArea.setText("");
                 }
             }
-            if(e.getSource() == CancelButton){
+            if (e.getSource() == CancelButton) {
                 setVisible(false);
             }
         }
