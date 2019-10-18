@@ -27,6 +27,8 @@ public class FileSimplestDlg extends JFrame implements BaseLayer {
 
     private ArrayList<MacAndName> storageOfMacList = new ArrayList<>();
 
+    public static ARPDlg arpDlg;
+
     public void setFileUnderLayer(BaseLayer newUnserLayer) {
         this.fileUnderLayer = newUnserLayer;
     }
@@ -345,7 +347,7 @@ public class FileSimplestDlg extends JFrame implements BaseLayer {
                 }
                 sendFileButton.setEnabled(true);
             } else if (e.getSource() == CacheTableButton) {
-                new ARPDlg();
+                arpDlg.setVisible(true);
             }
         }
 
@@ -443,7 +445,8 @@ public class FileSimplestDlg extends JFrame implements BaseLayer {
         m_LayerMgr.AddLayer(new FileSimplestDlg("FileGUI"));
         m_LayerMgr.AddLayer(new ARPDlg("ARPGUI"));
         m_LayerMgr.ConnectLayers(" NI ( *Ethernet ( *IP ( *TCP ( *Chat ( *FileGUI ) *File ( +FileGUI ) *ARPGUI )  -ARP ) *ARP ) )");
-
+        arpDlg = new ARPDlg();
+        arpDlg.setVisible(false);
         ((FileSimplestDlg) m_LayerMgr.GetLayer("FileGUI")).setFileUnderLayer(m_LayerMgr.GetLayer("File"));
     }
 }

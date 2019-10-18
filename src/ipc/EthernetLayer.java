@@ -26,10 +26,6 @@ public class EthernetLayer implements BaseLayer {
         return this.ethernetHeader.enet_type[index];
     }
 
-    public void setEthernetHeaderType(byte[] newType) {
-        this.ethernetHeader.enet_type = newType;
-    }
-
     private class _ETHERNET_ADDR {
         private byte[] addr = new byte[6];
 
@@ -119,6 +115,7 @@ public class EthernetLayer implements BaseLayer {
         int index = 0;
         byte[] src_mac = this.ethernetHeader.enet_srcaddr.addr;//내 mac주소
         byte[] dst_mac = ARPLayer.getMacAddress(src_mac);//ip에 따른 mac주소 가져오기
+
         if (is_checked == 0x06 && input[8] == 0x01) {//arp요청
             while (index < 6) {//브로드캐스트
                 headerAddedArray[index] = (byte) 0xff;
@@ -139,24 +136,24 @@ public class EthernetLayer implements BaseLayer {
             headerAddedArray[13] = this.ethernetHeader.enet_type[1];
         }
 
-        while (index < 12) {
+        while (index < 12) { // 나의 mac주소
             headerAddedArray[index] = this.ethernetHeader.enet_srcaddr.getAddrData(index - 6);//내 mac주소
             index += 1;
         }
         headerAddedArray[12] = this.ethernetHeader.enet_type[0];
         System.arraycopy(input, 0, headerAddedArray, 14, length);
-        boolean isSend = this.GetUnderLayer().Send(headerAddedArray, headerAddedArray.length);
-        this.setEthernetHeaderType(new byte[2]);
-        return isSend;
+
+        return this.GetUnderLayer().Send(headerAddedArray, headerAddedArray.length);
     }
 
     @Override
     public synchronized boolean Receive(byte[] input) {
-        if (!this.isMyAddress(input) && (this.isBoardData(input) || this.isMyConnectionData(input))) {//브로드이거나 나한테
+        if (!this.isMyAddress(input) && (this.isBoardData(input) || this.isMyConnectionData(input))
+                && input[12] == 0x08 && input[13] == 0x00) {//브로드이거나 나한테
             byte[] removedHeaderData = this.removeCappHeaderData(input);
-            if (input[12] == 0x08 && input[13] == 0x00) {//ip
+            if (removedHeaderData[0] == 0x08) {//ip
                 return this.GetUpperLayer(0).Receive(removedHeaderData); // IP Layer
-            } else if (input[12] == 0x08 && input[13] == 0x06) {//arp
+            } else if (removedHeaderData[0] == 0x06) {//arp
                 return this.GetUpperLayer(1).Receive(removedHeaderData); // ARP Layer
             }
         }

@@ -139,7 +139,7 @@ public class FileAppLayer implements BaseLayer {
         }
         this._fileHeaderForSend.fapp_seq_num = this.getSequceNumberToByteArray(index);//배열
         byte[] sendData = this.objectToByte(inputData);
-        this.waitForOtherFrameSendAndSetEhterNetHeaderType();//file명을 보내는 경우를 넣어 줘야한다.
+
         System.out.println(index);
         return this.Send(sendData, sendData.length);
     }
@@ -213,10 +213,6 @@ public class FileAppLayer implements BaseLayer {
                 && (underLayer).ethernetHeaderGetType(1) == 0x00)) {
             this.waitThread();
         }
-        byte[] newTypeOfEthernet = new byte[2];
-        newTypeOfEthernet[0] = (byte) 0x20;
-        newTypeOfEthernet[1] = (byte) 0x90;
-        underLayer.setEthernetHeaderType(newTypeOfEthernet);
     }
 
     private byte[] totalLengh(long fileLength) {//byte 배열 형성

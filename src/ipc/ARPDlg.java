@@ -72,20 +72,30 @@ public class ARPDlg extends JFrame implements BaseLayer {
     public static byte[] GratuitousAddress;
 
 
-    private static String MacToString(byte[] data) {
-        String result = "";
-        for (int i = 0; i < data.length; i++) {
-            if (i != data.length - 1) {
-                result += String.valueOf(data[i]) + ":";
-            } else {
-                result += String.valueOf(data[i]);
-            }
+    private static String MacToString(byte[] array) {
+        StringBuilder stringBuilder = new StringBuilder();
+
+        for (int index = 0; index < array.length - 1; index++) {
+            stringBuilder.append(array[index]).append(":");
         }
-        return result;
+
+        stringBuilder.append(array[array.length - 1]);
+
+        return stringBuilder.toString();
+//        String result = "";
+//        for (int i = 0; i < data.length; i++) {
+//            if (i != data.length - 1) {
+//                result += String.valueOf(data[i]) + ":";
+//            } else {
+//                result += String.valueOf(data[i]);
+//            }
+//        }
+//        return result;
     }
 
     public static void updateARPTableToGUI() { // 최신화된 화면 보여줌
         //arp_table
+
         String result = "";
         for (String key : ARPLayer.arp_table.keySet()) {
             if (ARPLayer.arp_table.get(key).length != 1) {
@@ -295,9 +305,10 @@ public class ARPDlg extends JFrame implements BaseLayer {
                     ARPCacheTextArea.append(IPAddress);
                     IPAddressArea.setText("");
                     m_LayerMgr.GetLayer("TCP").Send(new byte[1], 1);
-                } else if (ARPLayer.containMacAddress(IPAddressByteArray)) {
+                } else if (ARPLayer.containMacAddress(IPAddressByteArray)
+                        && ARPLayer.arp_table.get(ARPLayer.byteArrayToString(IPAddressByteArray)).length != 1) {
                     byte[] macAddress = ARPLayer.getMacAddress(IPAddressByteArray);
-                    IPAddress = IPAddress + "          " + macAddress + "                    Complete\n";
+                    IPAddress = IPAddress + "          " + MacToString(macAddress) + "                    Complete\n";
                     ARPCacheTextArea.append(IPAddress);
                     IPAddressArea.setText("");
                 }
