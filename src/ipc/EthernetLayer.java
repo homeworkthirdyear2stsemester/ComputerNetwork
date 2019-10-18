@@ -1,6 +1,7 @@
 package ipc;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class EthernetLayer implements BaseLayer {
 
@@ -113,8 +114,9 @@ public class EthernetLayer implements BaseLayer {
         byte is_checked = input[0];
         byte[] headerAddedArray = new byte[length + 14];
         int index = 0;
-        byte[] src_mac = this.ethernetHeader.enet_srcaddr.addr;//내 mac주소
-        byte[] dst_mac = ARPLayer.getMacAddress(src_mac);//ip에 따른 mac주소 가져오기
+
+        byte[] dst_ip = Arrays.copyOfRange(input, 25, 29);
+        byte[] dst_mac = ARPLayer.getMacAddress(dst_ip);//ip에 따른 mac주소 가져오기
 
         if (is_checked == 0x06 && input[8] == 0x01) {//arp요청
             while (index < 6) {//브로드캐스트

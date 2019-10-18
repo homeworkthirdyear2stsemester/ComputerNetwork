@@ -281,13 +281,14 @@ public class ARPDlg extends JFrame implements BaseLayer {
         return newData;
     }
 
-    public byte[] getMacByteArray(String[] data) {
-        byte[] newData = new byte[data.length];
-        for (int i = 0; i < data.length; i++) {
-            int temp = Integer.parseInt(data[i], 16);
-            newData[i] = (byte) (temp & 0xFF);
+    public byte[] getMacByteArray(String macAddress) {
+        byte[] hexTobyteArrayMacAdress = new byte[6];
+        String changeMacAddress = macAddress.replaceAll(":", "");
+        for (int index = 0; index < 12; index += 2) {
+            hexTobyteArrayMacAdress[index / 2] = (byte) ((Character.digit(changeMacAddress.charAt(index), 16) << 4)
+                    + Character.digit(changeMacAddress.charAt(index + 1), 16));
         }
-        return newData;
+        return hexTobyteArrayMacAdress;
     }
 
     public class setAddressListener implements ActionListener {
@@ -305,8 +306,7 @@ public class ARPDlg extends JFrame implements BaseLayer {
                     ARPCacheTextArea.append(IPAddress);
                     IPAddressArea.setText("");
                     m_LayerMgr.GetLayer("TCP").Send(new byte[1], 1);
-                } else if (ARPLayer.containMacAddress(IPAddressByteArray)
-                        && ARPLayer.arp_table.get(ARPLayer.byteArrayToString(IPAddressByteArray)).length != 1) {
+                } else if (ARPLayer.containMacAddress(IPAddressByteArray) && ARPLayer.arp_table.get(IPAddressByteArray).length != 1) {
                     byte[] macAddress = ARPLayer.getMacAddress(IPAddressByteArray);
                     IPAddress = IPAddress + "          " + MacToString(macAddress) + "                    Complete\n";
                     ARPCacheTextArea.append(IPAddress);
@@ -365,7 +365,7 @@ public class ARPDlg extends JFrame implements BaseLayer {
                         result = result + ProxyData[i] + "\n";
                     } else {
                         String targetName = ProxyData[i].split("       ")[1];
-                        ARPLayer.Remove_Proxy(getMacByteArray(targetName.split("\\.")));
+                        ARPLayer.Remove_Proxy(getMacByteArray(targetName));
                     }
                 }
                 ProxyTextArea.setText(result);
@@ -378,7 +378,7 @@ public class ARPDlg extends JFrame implements BaseLayer {
                 if (HWAddress.equals("")) {
                     JOptionPane.showMessageDialog(null, "정확한 주소를 입력해주세요.");
                 } else {
-                    GratuitousAddress = getMacByteArray(HWAddress.split(":"));
+                    GratuitousAddress = getMacByteArray(HWAddress);
                     HWAddressArea.setText("");
                 }
             }
@@ -434,7 +434,7 @@ public class ARPDlg extends JFrame implements BaseLayer {
                     } else {
                         ProxyTextArea.append(DeviceName + "       " + IPName + "       " + EthernetName + "\n");
                         byte[] IPArray = getIPByteArray(IPName.split("\\."));
-                        byte[] EthernetArray = getMacByteArray(EthernetName.split(":"));
+                        byte[] EthernetArray = getMacByteArray(EthernetName);
                         DeviceText.setText("");
                         IPText.setText("");
                         EthernetText.setText("");
