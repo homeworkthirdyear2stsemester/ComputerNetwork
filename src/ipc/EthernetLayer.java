@@ -93,7 +93,6 @@ public class EthernetLayer implements BaseLayer {
 
     @Override
     public void SetUnderLayer(BaseLayer pUnderLayer) {
-        // TODO Auto-generated method stub
         if (pUnderLayer == null)
             return;
         this.p_UnderLayer = pUnderLayer;
@@ -101,7 +100,6 @@ public class EthernetLayer implements BaseLayer {
 
     @Override
     public void SetUpperLayer(BaseLayer pUpperLayer) {
-        // TODO Auto-generated method stub
         if (pUpperLayer == null)
             return;
         this.p_aUpperLayer.add(nUpperLayerCount++, pUpperLayer);//layer추가
@@ -139,7 +137,7 @@ public class EthernetLayer implements BaseLayer {
         if (!this.isMyAddress(input) && (this.isBoardData(input) || this.isMyConnectionData(input))
                 && input[12] == (byte) 0x20 && input[13] == (byte) 0x80) {
             byte[] removedHeaderData = this.removeCappHeaderData(input);
-            return ((ChatAppLayer) this.GetUpperLayer(0)).makeHeaderData(removedHeaderData);
+            return this.GetUpperLayer(0).Receive(removedHeaderData);
         }
         return false;
     }
