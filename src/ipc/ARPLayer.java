@@ -1,19 +1,15 @@
 package ipc;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.*;
 
 public class ARPLayer implements BaseLayer {
     public int nUpperLayerCount = 0;
     public String pLayerName = null;
     public BaseLayer p_UnderLayer = null;
     public ArrayList<BaseLayer> p_aUpperLayer = new ArrayList<>();
-    public static HashMap<String, byte[]> arp_table = new HashMap<>();
+    public static Map<String, byte[]> arp_table = new Hashtable<>();
     public _ARP_HEADER arp_Header = new _ARP_HEADER();
-    public static HashMap<String, byte[]> proxy_table = new HashMap<>();
+    public static Map<String, byte[]> proxy_table = new Hashtable<>();
 
     private class _ARP_ADDR {
         private byte[] mac_addr = new byte[6];
@@ -212,7 +208,7 @@ public class ARPLayer implements BaseLayer {
     }
 
     public static void RemoveAll_Arp() {
-        arp_table = new HashMap<>();
+        arp_table = new Hashtable<>();
         ARPDlg.updateARPTableToGUI();
     }
 
