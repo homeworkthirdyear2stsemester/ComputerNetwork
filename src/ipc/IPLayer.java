@@ -30,10 +30,9 @@ public class IPLayer implements BaseLayer {
         this.ip_header.ip_dstaddr.addr = new byte[4]; //헤더 주소 초기화
         this.ip_header.ip_srcaddr.addr = new byte[4];
 
-        SetIpSrcAddress(((ARPDlg) this.GetUpperLayer(1)).getMyIPAddress());
-        SetIpDstAddress(((ARPDlg) this.GetUpperLayer(1)).getTargetIPAddress());
+        SetIpSrcAddress(((ARPDlg) this.GetUpperLayer(0).GetUpperLayer(2)).getMyIPAddress());
+        SetIpDstAddress(((ARPDlg) this.GetUpperLayer(0).GetUpperLayer(2)).getTargetIPAddress());
         byte[] temp = ObjToByte21(this.ip_header, input, length); //multiplexing
-
 
         if (ARPLayer.containMacAddress(this.ip_header.ip_dstaddr.addr)) {//목적지 IP주소가 캐싱되어있으면
             return this.GetUnderLayer(0).Send(temp, length + 21);//데이터이므로 Ethernet Layer로 전달
@@ -50,8 +49,8 @@ public class IPLayer implements BaseLayer {
         buf[0] = ip_header.is_checked;
         buf[1] = ip_header.ip_verlen;
         buf[2] = ip_header.ip_tos;
-        buf[3] = (byte) (((length + 20) >> 8) & 0xFF);
-        buf[4] = (byte) ((length + 20) & 0xFF);
+        buf[3] = (byte) (((length + 21) >> 8) & 0xFF);
+        buf[4] = (byte) ((length + 21) & 0xFF);
 
         buf[5] = (byte) ((ip_header.ip_id >> 8) & 0xFF);
         buf[6] = (byte) (ip_header.ip_id & 0xFF);
