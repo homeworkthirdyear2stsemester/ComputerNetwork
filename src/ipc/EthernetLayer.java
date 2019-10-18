@@ -58,7 +58,7 @@ public class EthernetLayer implements BaseLayer {
             this.enet_dstaddr = new _ETHERNET_ADDR();
             this.enet_srcaddr = new _ETHERNET_ADDR();
             this.enet_type = new byte[2];
-            this.enet_type[0] = 0x00;
+            this.enet_type[0] = 0x08;
             this.enet_type[1] = 0x00;
             this.enet_data = null;
         }
@@ -114,18 +114,36 @@ public class EthernetLayer implements BaseLayer {
 
     @Override
     public synchronized boolean Send(byte[] input, int length) {
+        byte is_checked = input[0];
         byte[] headerAddedArray = new byte[length + 14];
         int index = 0;
-        while (index < 6) {
-            headerAddedArray[index] = this.ethernetHeader.enet_dstaddr.getAddrData(index);
-            index += 1;
+        byte[] src_mac = this.ethernetHeader.enet_srcaddr.addr;//내 mac주소
+        byte[] dst_mac = ARPLayer.getMacAddress(src_mac);//ip에 따른 mac주소 가져오기
+        if (is_checked == 0x06 && input[8] == 0x01) {//arp요청
+            while (index < 6) {//브로드캐스트
+                headerAddedArray[index] = (byte) 0xff;
+                index += 1;
+            }
+            headerAddedArray[13] = (byte) 0x06;
+        } else if (is_checked == 0x06 && input[8] == 0x02) {//arp 응답
+            while (index < 6) {//요청온 주소
+                headerAddedArray[index] = dst_mac[index];
+                index += 1;
+            }
+            headerAddedArray[13] = (byte) 0x06;
+        } else if (is_checked == 0x08) {//ip
+            while (index < 6) {//해당 mac으로 보냄
+                headerAddedArray[index] = dst_mac[index];
+                index += 1;
+            }
+            headerAddedArray[13] = this.ethernetHeader.enet_type[1];
         }
+
         while (index < 12) {
-            headerAddedArray[index] = this.ethernetHeader.enet_srcaddr.getAddrData(index - 6);
+            headerAddedArray[index] = this.ethernetHeader.enet_srcaddr.getAddrData(index - 6);//내 mac주소
             index += 1;
         }
-        headerAddedArray[index] = this.ethernetHeader.enet_type[0];
-        headerAddedArray[index + 1] = this.ethernetHeader.enet_type[1];
+        headerAddedArray[12] = this.ethernetHeader.enet_type[0];
         System.arraycopy(input, 0, headerAddedArray, 14, length);
         boolean isSend = this.GetUnderLayer().Send(headerAddedArray, headerAddedArray.length);
         this.setEthernetHeaderType(new byte[2]);
@@ -134,17 +152,20 @@ public class EthernetLayer implements BaseLayer {
 
     @Override
     public synchronized boolean Receive(byte[] input) {
-        if (!this.isMyAddress(input) && (this.isBoardData(input) || this.isMyConnectionData(input))
-                && input[12] == (byte) 0x20 && input[13] == (byte) 0x80) {
+        if (!this.isMyAddress(input) && (this.isBoardData(input) || this.isMyConnectionData(input))) {//브로드이거나 나한테
             byte[] removedHeaderData = this.removeCappHeaderData(input);
-            return this.GetUpperLayer(0).Receive(removedHeaderData);
+            if (input[12] == 0x08 && input[13] == 0x00) {//ip
+                return this.GetUpperLayer(0).Receive(removedHeaderData); // IP Layer
+            } else if (input[12] == 0x08 && input[13] == 0x06) {//arp
+                return this.GetUpperLayer(1).Receive(removedHeaderData); // ARP Layer
+            }
         }
         return false;
     }
 
     private byte[] removeCappHeaderData(byte[] input) {//header 제거
-        byte[] removeCappHeader = new byte[1460];
-        for (int index = 0; index < 1460; index++) {
+        byte[] removeCappHeader = new byte[input.length - 14];
+        for (int index = 0; index < removeCappHeader.length; index++) {
             removeCappHeader[index] = input[index + 14];
         }
 
