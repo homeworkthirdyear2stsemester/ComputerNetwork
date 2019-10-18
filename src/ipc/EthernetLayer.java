@@ -149,11 +149,11 @@ public class EthernetLayer implements BaseLayer {
     @Override
     public synchronized boolean Receive(byte[] input) {
         if (!this.isMyAddress(input) && (this.isBoardData(input) || this.isMyConnectionData(input))
-                && input[12] == 0x08 && input[13] == 0x00) {//브로드이거나 나한테
+                && input[12] == 0x08) {//브로드이거나 나한테
             byte[] removedHeaderData = this.removeCappHeaderData(input);
-            if (removedHeaderData[0] == 0x08) {//ip
+            if (input[13] == 0x08) {//ip
                 return this.GetUpperLayer(0).Receive(removedHeaderData); // IP Layer
-            } else if (removedHeaderData[0] == 0x06) {//arp
+            } else if (input[13] == 0x06) {//arp
                 return this.GetUpperLayer(1).Receive(removedHeaderData); // ARP Layer
             }
         }
