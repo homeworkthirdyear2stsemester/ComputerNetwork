@@ -76,7 +76,7 @@ public class ARPLayer implements BaseLayer {
             this.arp_Header.arp_dstaddr.ip_addr = ARPDlg.TargetIPAddress;
             // dst mac은 0
             byte[] headerAddedArray = ObjToByte_Send(arp_Header, (byte) 0x06, (byte) 0x01);// ARP이고 요청인 헤더
-            arp_table.put(byteArrayToString(ARPDlg.TargetIPAddress), null);
+            arp_table.put(byteArrayToString(ARPDlg.TargetIPAddress), new byte[1]);
             ARPDlg.updateARPTableToGUI();
             return this.GetUnderLayer().Send(headerAddedArray, headerAddedArray.length);
             // EthernetLayer의 send호출

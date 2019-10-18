@@ -8,13 +8,14 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 
+import static ipc.FileSimplestDlg.m_LayerMgr;
+
 public class ARPDlg extends JFrame implements BaseLayer {
     public int nUpperLayerCount = 0;
     public String pLayerName = null;
     public BaseLayer p_UnderLayer = null;
     public ArrayList<BaseLayer> p_aUpperLayer = new ArrayList<>();
     private BaseLayer fileUnderLayer;
-    private static LayerManager m_LayerMgr = new LayerManager();
 
     private JTextField ChattingWrite;
 
@@ -26,9 +27,6 @@ public class ARPDlg extends JFrame implements BaseLayer {
     private static JTextArea ARPCacheTextArea;
     private JButton AllDeleteButton;
     private JButton ItemDeleteButton;
-    private JTextArea IPSettingArea;
-    private JTextArea MacSettingArea;
-    private JButton SettingButton;
     private JButton AddButton;
     private JTextArea ProxyTextArea;
     private JButton DeleteButton;
@@ -90,7 +88,7 @@ public class ARPDlg extends JFrame implements BaseLayer {
         //arp_table
         String result = "";
         for (String key : ARPLayer.arp_table.keySet()) {
-            if (ARPLayer.arp_table.get(key) != null) {
+            if (ARPLayer.arp_table.get(key).length != 1) {
                 result += key + "          " + MacToString(ARPLayer.arp_table.get(key)) + "                    " + "Complete";
             } else {
                 result += key + "          " + "??????????" + "                    " + "Incomplete";
@@ -115,7 +113,7 @@ public class ARPDlg extends JFrame implements BaseLayer {
     public ARPDlg() {
         setTitle("TestARP");
 
-        setBounds(100, 100, 867, 593);
+        setBounds(100, 100, 867, 499);
         contentPane = new JPanel();
         contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
         setContentPane(contentPane);
@@ -201,41 +199,13 @@ public class ARPDlg extends JFrame implements BaseLayer {
 
         JButton QuitButton = new JButton("종료");
         QuitButton.addActionListener(e -> System.exit(0));
-        QuitButton.setBounds(291, 499, 105, 27);
+        QuitButton.setBounds(293, 409, 105, 27);
         contentPane.add(QuitButton);
 
         CancelButton = new JButton("취소");
-        CancelButton.setBounds(412, 499, 105, 27);
+        CancelButton.setBounds(410, 409, 105, 27);
         CancelButton.addActionListener(new setAddressListener());
         contentPane.add(CancelButton);
-
-        JPanel IPandMacSettingPanel = new JPanel();
-        IPandMacSettingPanel.setBorder(
-                new TitledBorder(null, "Setting IP & Mac", TitledBorder.LEADING, TitledBorder.TOP, null, null));
-        IPandMacSettingPanel.setBounds(14, 398, 384, 96);
-        contentPane.add(IPandMacSettingPanel);
-        IPandMacSettingPanel.setLayout(null);
-
-        SettingButton = new JButton("Setting");
-        SettingButton.addActionListener(new setAddressListener());
-        SettingButton.setBounds(293, 40, 77, 27);
-        IPandMacSettingPanel.add(SettingButton);
-
-        IPSettingArea = new JTextArea();
-        IPSettingArea.setBounds(79, 24, 200, 24);
-        IPandMacSettingPanel.add(IPSettingArea);
-
-        JLabel label = new JLabel("IP 주소");
-        label.setBounds(14, 26, 62, 18);
-        IPandMacSettingPanel.add(label);
-
-        MacSettingArea = new JTextArea();
-        MacSettingArea.setBounds(79, 60, 200, 24);
-        IPandMacSettingPanel.add(MacSettingArea);
-
-        JLabel lblMac = new JLabel("Mac 주소");
-        lblMac.setBounds(14, 62, 62, 18);
-        IPandMacSettingPanel.add(lblMac);
         setVisible(true);
     }
 
@@ -315,7 +285,6 @@ public class ARPDlg extends JFrame implements BaseLayer {
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            TCPLayer tempTCPLayer = (TCPLayer) m_LayerMgr.GetLayer("TCP");
             if (e.getSource() == ARPCacheSendButton) { // 수정
                 String IPAddress = IPAddressArea.getText();
                 byte[] IPAddressByteArray = getIPByteArray(IPAddress.split("\\."));
@@ -325,7 +294,7 @@ public class ARPDlg extends JFrame implements BaseLayer {
                     IPAddress = IPAddress + "          ??????????          Incomplete\n";
                     ARPCacheTextArea.append(IPAddress);
                     IPAddressArea.setText("");
-                    // Send Data to TCP Layer!!!!!!!!!!!
+                    m_LayerMgr.GetLayer("TCP").Send(new byte[1], 1);
                 } else if (ARPLayer.containMacAddress(IPAddressByteArray)) {
                     byte[] macAddress = ARPLayer.getMacAddress(IPAddressByteArray);
                     IPAddress = IPAddress + "          " + macAddress + "                    Complete\n";
@@ -389,28 +358,6 @@ public class ARPDlg extends JFrame implements BaseLayer {
                     }
                 }
                 ProxyTextArea.setText(result);
-            }
-            if (e.getSource() == SettingButton) {
-                if (IPSettingArea.getText().equals("") || MacSettingArea.getText().equals("")) {
-                    JOptionPane.showMessageDialog(null, "IP와 Mac주소를 입력하세요.");
-                    return;
-                }
-                if (!SettingButton.getText().equals("Reset")) {
-                    String IPAddress = IPSettingArea.getText();
-                    String MacAddress = MacSettingArea.getText();
-                    byte[] IPByteArray = getIPByteArray(IPAddress.split("\\."));
-                    byte[] MacByteArray = getMacByteArray(MacAddress.split(":"));
-                    setMyIPAddress(IPByteArray);
-                    setMyMacAddress(MacByteArray);
-                    IPSettingArea.enable(false);
-                    MacSettingArea.enable(false);
-                    SettingButton.setText("Reset");
-                } else {
-                    IPSettingArea.setText("");
-                    MacSettingArea.setText("");
-                    IPSettingArea.enable(true);
-                    MacSettingArea.enable(true);
-                }
             }
             if (e.getSource() == AddButton) {
                 new ProxyDlg();

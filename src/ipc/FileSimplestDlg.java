@@ -21,7 +21,7 @@ public class FileSimplestDlg extends JFrame implements BaseLayer {
     private BaseLayer fileUnderLayer;
     private JButton CacheTableButton;
 
-    private static LayerManager m_LayerMgr = new LayerManager();
+    public static LayerManager m_LayerMgr = new LayerManager();
 
     private JTextField ChattingWrite;
 
@@ -39,8 +39,9 @@ public class FileSimplestDlg extends JFrame implements BaseLayer {
 
     JTextArea ChattingArea;//화면 보여주는 위치
     JTextArea srcAddress;
-    JTextArea dstAddress;
+    JTextArea dstIPAddress;
     JTextArea fileUrl;
+    JTextArea srcIPAddress;
 
     JLabel lblsrc;//label 설정 -> 제목 같은거 설정
     JLabel lbldst;
@@ -109,23 +110,27 @@ public class FileSimplestDlg extends JFrame implements BaseLayer {
 
         JPanel sourceAddressPanel = new JPanel();//source address담는 panel
         sourceAddressPanel.setBorder(new BevelBorder(BevelBorder.LOWERED, null, null, null, null));
-        sourceAddressPanel.setBounds(10, 140, 170, 20);
+        sourceAddressPanel.setBounds(10, 204, 170, 20);
         settingPanel.add(sourceAddressPanel);
         sourceAddressPanel.setLayout(null);
 
-        lblsrc = new JLabel("Source Mac Address");
-        lblsrc.setBounds(10, 115, 170, 20);//위치와 높이지정
-        settingPanel.add(lblsrc);//panel 추가
-
         srcAddress = new JTextArea();
-        srcAddress.setBounds(2, 2, 170, 20);
-        sourceAddressPanel.add(srcAddress);// src address
+        srcAddress.setBounds(0, 0, 170, 20);
+        sourceAddressPanel.add(srcAddress);
+
+        lblsrc = new JLabel("Source Mac Address");
+        lblsrc.setBounds(10, 172, 170, 20);//위치와 높이지정
+        settingPanel.add(lblsrc);//panel 추가
 
         JPanel destinationAddressPanel = new JPanel();//입력 받는 위치의 GUI 생성
         destinationAddressPanel.setBorder(new BevelBorder(BevelBorder.LOWERED, null, null, null, null));
-        destinationAddressPanel.setBounds(10, 212, 170, 20);
+        destinationAddressPanel.setBounds(10, 268, 170, 20);
         settingPanel.add(destinationAddressPanel);
         destinationAddressPanel.setLayout(null);
+
+        dstIPAddress = new JTextArea();
+        dstIPAddress.setBounds(0, 0, 170, 20);
+        destinationAddressPanel.add(dstIPAddress);
 
 
         NILayer tempNI = (NILayer) m_LayerMgr.GetLayer("NI");
@@ -151,24 +156,20 @@ public class FileSimplestDlg extends JFrame implements BaseLayer {
         }
 
         this.NICComboBox = new JComboBox(nameOfConnection);
-        this.NICComboBox.setBounds(10, 65, 170, 20);
+        this.NICComboBox.setBounds(10, 45, 170, 20);
         settingPanel.add(this.NICComboBox);
         this.NICComboBox.addActionListener(new setAddressListener());
 
         lblNICLabel = new JLabel("NIC 선택");
-        lblNICLabel.setBounds(10, 35, 170, 20);
+        lblNICLabel.setBounds(10, 24, 170, 20);
         settingPanel.add(lblNICLabel);
 
-        lbldst = new JLabel("Destination Mac Address");
-        lbldst.setBounds(10, 187, 190, 20);
+        lbldst = new JLabel("Destination IP Address");
+        lbldst.setBounds(10, 236, 190, 20);
         settingPanel.add(lbldst);
 
-        dstAddress = new JTextArea();
-        dstAddress.setBounds(2, 2, 170, 20);
-        destinationAddressPanel.add(dstAddress);// dst address
-
         Setting_Button = new JButton("Setting");// setting
-        Setting_Button.setBounds(80, 270, 100, 20);
+        Setting_Button.setBounds(80, 300, 100, 20);
         Setting_Button.addActionListener(new setAddressListener());
         settingPanel.add(Setting_Button);// setting
 
@@ -210,8 +211,22 @@ public class FileSimplestDlg extends JFrame implements BaseLayer {
 
         CacheTableButton = new JButton("CacheTable");
         CacheTableButton.addActionListener(new setAddressListener());
-        CacheTableButton.setBounds(10, 312, 170, 27);
+        CacheTableButton.setBounds(10, 332, 170, 27);
         settingPanel.add(CacheTableButton);
+
+        JLabel lblSourceIpAddress = new JLabel("Source IP Address");
+        lblSourceIpAddress.setBounds(10, 99, 170, 20);
+        settingPanel.add(lblSourceIpAddress);
+
+        JPanel panel = new JPanel();
+        panel.setLayout(null);
+        panel.setBorder(new BevelBorder(BevelBorder.LOWERED, null, null, null, null));
+        panel.setBounds(10, 131, 170, 20);
+        settingPanel.add(panel);
+
+        srcIPAddress = new JTextArea();
+        srcIPAddress.setBounds(0, 0, 170, 20);
+        panel.add(srcIPAddress);
 
         sendFileButton = new JButton("transfer");
         sendFileButton.setBounds(270, 50, 80, 20);
@@ -227,7 +242,7 @@ public class FileSimplestDlg extends JFrame implements BaseLayer {
 
         for (byte nowByte : mac) {
             if (sb.length() != 0) {
-                sb.append("-");
+                sb.append(":");
             }
             if (0 <= nowByte && nowByte < 16) {
                 sb.append("0");
@@ -237,9 +252,18 @@ public class FileSimplestDlg extends JFrame implements BaseLayer {
         return sb.toString();
     }
 
+    public byte[] getIPByteArray(String[] data) {
+        byte[] newData = new byte[data.length];
+        for (int i = 0; i < data.length; i++) {
+            int temp = Integer.parseInt(data[i]);
+            newData[i] = (byte) (temp & 0xFF);
+        }
+        return newData;
+    }
+
     private byte[] strToByte(String macAddress) {
         byte[] hexTobyteArrayMacAdress = new byte[6];
-        String changeMacAddress = macAddress.replaceAll("-", "");
+        String changeMacAddress = macAddress.replaceAll(":", "");
         for (int index = 0; index < 12; index += 2) {
             hexTobyteArrayMacAdress[index / 2] = (byte) ((Character.digit(changeMacAddress.charAt(index), 16) << 4)
                     + Character.digit(changeMacAddress.charAt(index + 1), 16));
@@ -270,8 +294,12 @@ public class FileSimplestDlg extends JFrame implements BaseLayer {
                 if (e.getActionCommand().equals("Setting")) {
                     String srcMacNumber = srcAddress.getText();
                     adapterNumber = this.findPortNumber(tempEthernetLayer, srcMacNumber);
-                    byte[] dstMacAddress = strToByte(dstAddress.getText());//입력된 상대 mac주소 byte 배열로 만들기
-                    tempEthernetLayer.setDestNumber(dstMacAddress);//입력
+                    byte[] srcMacAddressArray = strToByte(srcMacNumber);
+                    byte[] srcIPAddressArray = getIPByteArray(srcIPAddress.getText().split("\\."));
+                    byte[] dstIPAddressArray = getIPByteArray((dstIPAddress.getText().split("\\.")));//입력된 상대 mac주소 byte 배열로 만들기
+                    ARPDlg.TargetIPAddress = dstIPAddressArray;
+                    ARPDlg.MyIPAddress = srcIPAddressArray;
+                    ARPDlg.MyMacAddress = srcMacAddressArray;
                     tempNILayer.setAdapterNumber(adapterNumber);//Pcap 객체 생성 및 모든 data를 받을 준비르 하는 메소드 -> receive가 내부에 포함됨
                     ((JButton) e.getSource()).setText("Reset");
                     this.enableAll(false);
@@ -285,9 +313,10 @@ public class FileSimplestDlg extends JFrame implements BaseLayer {
                     this.enableAll(true);
                     this.enableForSendButtons(false);
                     srcAddress.selectAll();
-                    dstAddress.selectAll();
+                    dstIPAddress.selectAll();
                     srcAddress.replaceSelection("");
-                    dstAddress.replaceSelection("");
+                    dstIPAddress.replaceSelection("");
+                    srcIPAddress.replaceSelection("");
                     ((JButton) e.getSource()).setText("Setting");
                 }
             } else if (e.getSource() == Chat_send_Button) {
@@ -322,8 +351,9 @@ public class FileSimplestDlg extends JFrame implements BaseLayer {
 
         private void enableAll(boolean enable) {
             srcAddress.setEnabled(enable);
-            dstAddress.setEnabled(enable);
+            dstIPAddress.setEnabled(enable);
             NICComboBox.setEnabled(enable);
+            srcIPAddress.setEnabled(enable);
         }
 
         private void enableForSendButtons(boolean enable) {
@@ -336,7 +366,7 @@ public class FileSimplestDlg extends JFrame implements BaseLayer {
 
     public boolean Receive(byte[] input) {
         /*
-         * 	과제 채팅 화면에 채팅 보여주기
+         *    과제 채팅 화면에 채팅 보여주기
          */
         String outputStr = new String(input);
         ChattingArea.append("[RECV] : " + outputStr + "\n");
