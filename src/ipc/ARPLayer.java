@@ -52,11 +52,11 @@ public class ARPLayer implements BaseLayer {
     }// 해당 key 값이 Hashtable에 존재하는지 판별
 
     public static byte[] getMacAddress(byte[] input) {// IP주소로 mac주소 배열을 받아온다
-        String mac = byteArrayToString(input);
-        if (arp_table.containsKey(mac)) {
-            return arp_table.get(mac);
+        String ip = byteArrayToString(input);
+        if (arp_table.containsKey(ip)) {
+            return arp_table.get(ip);
         }
-        return proxy_table.get(mac); // arp에 없을경우 proxy table에서 찾아본다
+        return proxy_table.get(ip); // arp에 없을경우 proxy table에서 찾아본다
     }
 
     @Override
@@ -96,7 +96,7 @@ public class ARPLayer implements BaseLayer {
         byte[] dst_mac_address = Arrays.copyOfRange(input, 19, 25);
         byte[] dst_ip_address = Arrays.copyOfRange(input, 25, 29);
         // 리시브드
-
+        String a = byteArrayToString(src_mac_address);
         if (opcode[0] == 0x00 & opcode[1] == 0x01) {// ARP 요청 받음
             Timer timer = new Timer(byteArrayToString(src_ip_address));
             TimerTask task = new TimerTask() {
@@ -107,31 +107,22 @@ public class ARPLayer implements BaseLayer {
                 }
             };
             timer.schedule(task, 10000); // 10초로 지정
-            arp_table.replace(byteArrayToString(src_ip_address), src_mac_address);// table에 추가
-            ARPDlg.updateARPTableToGUI();
             _ARP_HEADER response_header = new _ARP_HEADER();// 보낼 헤드 생성
             if (Arrays.equals(dst_ip_address, ARPDlg.MyIPAddress)) {// 내 ip로 온 경우 내 IP랑 헤더에 적힌 IP비교 -> 아닐경우 Proxy
-                response_header.arp_srcaddr.mac_addr = dst_mac_address;// 내 mac주소 넣어준다.
+                response_header.arp_srcaddr.mac_addr = ARPDlg.MyMacAddress;// 내 mac주소 넣어준다.
                 response_header.arp_srcaddr.ip_addr = dst_ip_address;
                 response_header.arp_dstaddr.mac_addr = src_mac_address;
                 response_header.arp_dstaddr.ip_addr = src_ip_address;
-                arp_table.put(byteArrayToString(src_ip_address), src_mac_address);
-                ARPDlg.updateARPTableToGUI();
-            } else if (Arrays.equals(src_ip_address, dst_ip_address)) {
-                if (arp_table.containsKey(byteArrayToString(src_ip_address))) {
-                    arp_table.replace(byteArrayToString(src_ip_address), src_mac_address);
-                    ARPDlg.updateARPTableToGUI();
-                } else {
-                    arp_table.put(byteArrayToString(src_ip_address), src_mac_address);
-                    ARPDlg.updateARPTableToGUI();
-                }
+                this.arpCheckAndPut(src_ip_address, src_mac_address);
+            } else if (Arrays.equals(src_ip_address, dst_ip_address)) { //GARP
+                this.arpCheckAndPut(src_ip_address, src_mac_address);
             } else {// 내 ip로 안옴
                 if (proxy_table.containsKey(byteArrayToString(dst_ip_address))) {// 연결된 proxy이다
                     response_header.arp_srcaddr.mac_addr = dst_mac_address;// 여기다가 내 Mac주소 넣어준다. ***위에서 고쳐야함***
                     response_header.arp_srcaddr.ip_addr = dst_ip_address;
                     response_header.arp_dstaddr.mac_addr = src_mac_address;
                     response_header.arp_dstaddr.ip_addr = src_ip_address;
-                    proxy_table.put(byteArrayToString(src_ip_address), src_mac_address);
+                    arpCheckAndPut(src_ip_address, src_mac_address);
                     //Proxy update 할 필요없음 -> 자신이 쳐서 올라가기때문이기때문
                     // swap
                 } else {// proxy아님
@@ -143,13 +134,22 @@ public class ARPLayer implements BaseLayer {
 
             return this.GetUnderLayer().Send(response_arp, response_arp.length);
         } else if (opcode[0] == 0x00 & opcode[1] == 0x02) {// 내가 보낸 ARP 요청이 돌아옴 (상대방이 주소를 넣어서 보냄)
-            arp_table.put(byteArrayToString(src_ip_address), src_mac_address);// 요청받은거 테이블에 저장
-            ARPDlg.updateARPTableToGUI();
+            arpCheckAndPut(src_ip_address, src_mac_address);
 
             return true;
         }
 
         return false;
+    }
+
+    public void arpCheckAndPut(byte[] src_ip_address, byte[] src_mac_address) {
+        if (arp_table.containsKey(byteArrayToString(src_ip_address))) {
+            arp_table.replace(byteArrayToString(src_ip_address), src_mac_address);
+            ARPDlg.updateARPTableToGUI();
+        } else {
+            arp_table.put(byteArrayToString(src_ip_address), src_mac_address);
+            ARPDlg.updateARPTableToGUI();
+        }
     }
 
     public static String byteArrayToString(byte[] addressByteArray) {
