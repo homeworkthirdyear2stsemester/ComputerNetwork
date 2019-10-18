@@ -86,7 +86,7 @@ public class ARPDlg extends JFrame implements BaseLayer {
         return result;
     }
 
-    public static void updateARPTableToGUI() {
+    public static void updateARPTableToGUI() { // 최신화된 화면 보여줌
         //arp_table
         String result = "";
         for (String key : ARPLayer.arp_table.keySet()) {

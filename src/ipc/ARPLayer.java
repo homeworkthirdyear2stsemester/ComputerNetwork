@@ -26,7 +26,7 @@ public class ARPLayer implements BaseLayer {
     }
 
     private class _ARP_HEADER {
-        byte is_checked;// arp이면 06 ip이면 08
+        byte is_checked; // arp이면 06 ip이면 08 -> ethernet에서 구별
         byte[] arp_mac_type;
         byte[] arp_ip_type;
         byte arp_mac_addr_len;
@@ -49,14 +49,14 @@ public class ARPLayer implements BaseLayer {
 
     public static boolean containMacAddress(byte[] input) {
         return arp_table.containsKey(byteArrayToString(input));
-    }
+    }// 해당 key 값이 Hashtable에 존재하는지 판별
 
-    public static byte[] getMacAddress(byte[] input) {
+    public static byte[] getMacAddress(byte[] input) {// IP주소로 mac주소 배열을 받아온다
         String mac = byteArrayToString(input);
         if (arp_table.containsKey(mac)) {
             return arp_table.get(mac);
         }
-        return proxy_table.get(mac);
+        return proxy_table.get(mac); // arp에 없을경우 proxy table에서 찾아본다
     }
 
     @Override
@@ -70,8 +70,7 @@ public class ARPLayer implements BaseLayer {
             this.arp_Header.arp_srcaddr.mac_addr = ARPDlg.GratuitousAddress; // 출발지 맥주소 = 바뀐주소
             this.arp_Header.arp_dstaddr.ip_addr = ARPDlg.MyIPAddress; // 도착지 근원지IP주소 = 내 IP주소
             byte[] arp = ObjToByte_Send(arp_Header, (byte) 0x06, (byte) 0x01);
-            GetUnderLayer().Send(arp, arp.length);
-            return true;
+            return GetUnderLayer().Send(arp, arp.length);
         } else {
             this.arp_Header.arp_srcaddr.mac_addr = ARPDlg.MyMacAddress;
             this.arp_Header.arp_dstaddr.ip_addr = ARPDlg.TargetIPAddress;
@@ -79,9 +78,8 @@ public class ARPLayer implements BaseLayer {
             byte[] headerAddedArray = ObjToByte_Send(arp_Header, (byte) 0x06, (byte) 0x01);// ARP이고 요청인 헤더
             arp_table.put(byteArrayToString(ARPDlg.TargetIPAddress), null);
             ARPDlg.updateARPTableToGUI();
-            this.GetUnderLayer().Send(headerAddedArray, headerAddedArray.length);
+            return this.GetUnderLayer().Send(headerAddedArray, headerAddedArray.length);
             // EthernetLayer의 send호출
-            return true;
         }
     }
 
@@ -175,7 +173,7 @@ public class ARPLayer implements BaseLayer {
     }
 
     public byte[] ObjToByte_Send(_ARP_HEADER Header, byte is_checked, byte opcode) {
-        byte[] buf = new byte[29];
+        byte[] buf = new byte[29]; // ARP Frame
         byte[] src_mac = Header.arp_srcaddr.mac_addr;
         byte[] src_ip = Header.arp_srcaddr.ip_addr;
         byte[] dst_mac = Header.arp_dstaddr.mac_addr;
@@ -202,12 +200,12 @@ public class ARPLayer implements BaseLayer {
         proxy_table.put(byteArrayToString(IP), Mac);
     }
 
-    public static void Remove_Arp(byte[] removedIp) {
+    public static void Remove_Arp(byte[] removedIp) { // table에서 arp를 제거하고 GUI에 바로 출력한다.
         arp_table.remove(byteArrayToString(removedIp));
         ARPDlg.updateARPTableToGUI();
     }
 
-    public static void RemoveAll_Arp() {
+    public static void RemoveAll_Arp() { // 모든 ARP를 테이블에서 삭제하고 GUI에 알려준다
         arp_table = new Hashtable<>();
         ARPDlg.updateARPTableToGUI();
     }

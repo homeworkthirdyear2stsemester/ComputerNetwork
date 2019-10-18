@@ -35,10 +35,11 @@ public class IPLayer implements BaseLayer {
         byte[] temp = ObjToByte21(this.ip_header, input, length); //multiplexing
 
 
-        if (((ARPLayer) this.GetUnderLayer(1)).containMacAddress(this.ip_header.ip_dstaddr.addr))//목적지 IP주소가 캐싱되어있으면
-            return ((EthernetLayer) this.GetUnderLayer(0)).Send(temp, length + 21);//데이터이므로 Ethernet Layer로 전달
-        else return ((ARPLayer) this.GetUnderLayer(1)).Send(temp, length + 21);    //아니면 ARP 요청이므로 ARP Layer로 전달
-
+        if (ARPLayer.containMacAddress(this.ip_header.ip_dstaddr.addr)) {//목적지 IP주소가 캐싱되어있으면
+            return this.GetUnderLayer(0).Send(temp, length + 21);//데이터이므로 Ethernet Layer로 전달
+        } else {//아니면 ARP 요청이므로 ARP Layer로 전달
+            return this.GetUnderLayer(1).Send(temp, length + 21);
+        }
 
     }
 
@@ -49,20 +50,20 @@ public class IPLayer implements BaseLayer {
         buf[0] = ip_header.is_checked;
         buf[1] = ip_header.ip_verlen;
         buf[2] = ip_header.ip_tos;
-        buf[3] |= (byte) ((((short) (length + 20)) >> 8) & 0xFF);
-        buf[4] |= (byte) (((short) (length + 20)) & 0xFF);
+        buf[3] = (byte) (((length + 20) >> 8) & 0xFF);
+        buf[4] = (byte) ((length + 20) & 0xFF);
 
-        buf[5] |= (byte) ((ip_header.ip_id >> 8) & 0xFF);
-        buf[6] |= (byte) (ip_header.ip_id & 0xFF);
+        buf[5] = (byte) ((ip_header.ip_id >> 8) & 0xFF);
+        buf[6] = (byte) (ip_header.ip_id & 0xFF);
 
-        buf[7] |= ((ip_header.ip_fragoff >> 8) & 0xFF);
-        buf[8] |= (ip_header.ip_fragoff & 0xFF);
+        buf[7] = (byte) ((ip_header.ip_fragoff >> 8) & 0xFF);
+        buf[8] = (byte) (ip_header.ip_fragoff & 0xFF);
 
         buf[9] = ip_header.ip_ttl;
         buf[10] = ip_header.ip_proto;
 
-        buf[11] |= ((ip_header.ip_cksum >> 8) & 0xFF);
-        buf[12] |= (ip_header.ip_cksum & 0xFF);
+        buf[11] = (byte) ((ip_header.ip_cksum >> 8) & 0xFF);
+        buf[12] = (byte) (ip_header.ip_cksum & 0xFF);
 
 
         System.arraycopy(ip_header.ip_srcaddr.addr, 0, buf, 13, 4);
@@ -78,9 +79,6 @@ public class IPLayer implements BaseLayer {
         if (this.ip_header.ip_verlen != input[1] || this.ip_header.ip_tos != input[2]) {
             return false;
         } // ip 버전이 4인거만 받았다 -> 4, 6중에 4만 받음
-
-
-
 
 
         int packet_tot_len = ((input[3] << 8) & 0xFF00) + input[4] & 0xFF; //수신된 패킷의 전체 길이
@@ -174,7 +172,7 @@ public class IPLayer implements BaseLayer {
 
         private _IP_Header() {
             this.is_checked = 0x08;
-            this.ip_verlen = 0x04;
+            this.ip_verlen = 0x04; // IPV4 이므로 4로 지정
             this.ip_tos = 0x00;
             this.ip_len = 0;
             this.ip_id = 0;
@@ -202,7 +200,6 @@ public class IPLayer implements BaseLayer {
 
     @Override
     public BaseLayer GetUnderLayer() {
-        // TODO Auto-generated method stub
         return null;
     }
 }
