@@ -300,7 +300,8 @@ public class ARPDlg extends JFrame implements BaseLayer {
                     ARPCacheTextArea.append(IPAddress);
                     IPAddressArea.setText("");
                     m_LayerMgr.GetLayer("TCP").Send(new byte[1], 1);
-                } else if (ARPLayer.containMacAddress(IPAddressByteArray) && ARPLayer.arp_table.get(IPAddressByteArray).length != 1) {
+                } else if (ARPLayer.containMacAddress(IPAddressByteArray)
+                        && ARPLayer.arp_table.get(ARPLayer.byteArrayToString(IPAddressByteArray)).length != 1) {
                     byte[] macAddress = ARPLayer.getMacAddress(IPAddressByteArray);
                     IPAddress = IPAddress + "          " + MacToString(macAddress) + "                    Complete\n";
                     ARPCacheTextArea.append(IPAddress);
