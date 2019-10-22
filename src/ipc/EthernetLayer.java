@@ -131,6 +131,10 @@ public class EthernetLayer implements BaseLayer {
             }
             headerAddedArray[13] = (byte) 0x06;
         } else if (is_checked == 0x08) {//ip
+
+            dst_ip = Arrays.copyOfRange(input, 17, 21);
+            dst_mac = ARPLayer.getMacAddress(dst_ip);//ip에 따른 mac주소 가져오기
+
             while (index < 6) {//해당 mac으로 보냄
                 headerAddedArray[index] = dst_mac[index];
                 index += 1;

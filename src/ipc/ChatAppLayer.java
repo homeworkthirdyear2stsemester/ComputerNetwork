@@ -55,7 +55,7 @@ public class ChatAppLayer implements BaseLayer {
     }
 
     private byte[] objectToByte(byte[] input, int length, byte[] totlen, byte type) {
-        byte[] sendData = new byte[1460];
+        byte[] sendData = new byte[length + 4];
         sendData[0] = totlen[0];
         sendData[1] = totlen[1];
         sendData[2] = type;

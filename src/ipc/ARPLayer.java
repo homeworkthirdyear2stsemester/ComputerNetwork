@@ -112,6 +112,8 @@ public class ARPLayer implements BaseLayer {
                 this.arpCheckAndPut(src_ip_address, src_mac_address);
             } else if (Arrays.equals(src_ip_address, dst_ip_address)) { //GARP
                 this.arpCheckAndPut(src_ip_address, src_mac_address);
+
+                return true;
             } else {// 내 ip로 안옴
                 if (proxy_table.containsKey(byteArrayToString(dst_ip_address))) {// 연결된 proxy이다
                     response_header.arp_srcaddr.mac_addr = ARPDlg.MyMacAddress;// 여기다가 내 Mac주소 넣어준다. ***위에서 고쳐야함***
