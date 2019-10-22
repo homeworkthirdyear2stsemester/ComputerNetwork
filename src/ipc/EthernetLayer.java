@@ -56,7 +56,7 @@ public class EthernetLayer implements BaseLayer {
             this.enet_srcaddr = new _ETHERNET_ADDR();
             this.enet_type = new byte[2];
             this.enet_type[0] = 0x08;
-            this.enet_type[1] = 0x00;
+            this.enet_type[1] = 0x08;
             this.enet_data = null;
         }
     }
