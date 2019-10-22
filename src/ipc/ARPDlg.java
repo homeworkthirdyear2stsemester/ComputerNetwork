@@ -76,21 +76,14 @@ public class ARPDlg extends JFrame implements BaseLayer {
         StringBuilder stringBuilder = new StringBuilder();
 
         for (int index = 0; index < array.length - 1; index++) {
-            stringBuilder.append(array[index]).append(":");
+            String data = Integer.toHexString(array[index]);
+            stringBuilder.append(data, data.length() - 2, data.length()).append(":");
         }
 
-        stringBuilder.append(array[array.length - 1]);
+        String data = Integer.toHexString(array[array.length - 1]);
+        stringBuilder.append(data, data.length() - 2, data.length());
 
         return stringBuilder.toString();
-//        String result = "";
-//        for (int i = 0; i < data.length; i++) {
-//            if (i != data.length - 1) {
-//                result += String.valueOf(data[i]) + ":";
-//            } else {
-//                result += String.valueOf(data[i]);
-//            }
-//        }
-//        return result;
     }
 
     public static void updateARPTableToGUI() { // 최신화된 화면 보여줌
