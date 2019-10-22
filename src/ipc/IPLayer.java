@@ -1,7 +1,5 @@
 package ipc;
 
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 
 public class IPLayer implements BaseLayer {
@@ -26,20 +24,25 @@ public class IPLayer implements BaseLayer {
 
 
     public boolean Send(byte[] input, int length) {
-
+        int resultLength = input.length;
         this.ip_header.ip_dstaddr.addr = new byte[4]; //헤더 주소 초기화
         this.ip_header.ip_srcaddr.addr = new byte[4];
-
         SetIpSrcAddress(((ARPDlg) this.GetUpperLayer(0).GetUpperLayer(2)).getMyIPAddress());
-        SetIpDstAddress(((ARPDlg) this.GetUpperLayer(0).GetUpperLayer(2)).getTargetIPAddress());
-        byte[] temp = ObjToByte21(this.ip_header, input, length); //multiplexing
 
-        if (ARPLayer.containMacAddress(this.ip_header.ip_dstaddr.addr)) {//목적지 IP주소가 캐싱되어있으면
-            return this.GetUnderLayer(0).Send(temp, length + 21);//데이터이므로 Ethernet Layer로 전달
-        } else {//아니면 ARP 요청이므로 ARP Layer로 전달
-            return this.GetUnderLayer(1).Send(temp, length + 21);
+        if (length == -1) { // 그래티우스일 경우 ARPLayer로 처리
+            SetIpDstAddress(((ARPDlg) this.GetUpperLayer(0).GetUpperLayer(2)).getMyIPAddress()); // dst도 내 Mac주소로 해서 그래티우스라는걸 작업
+        } else {
+            SetIpDstAddress(((ARPDlg) this.GetUpperLayer(0).GetUpperLayer(2)).getTargetIPAddress());
         }
 
+        byte[] temp = ObjToByte21(this.ip_header, input, resultLength); //multiplexing
+
+        if (ARPLayer.containMacAddress(this.ip_header.ip_dstaddr.addr)) {//목적지 IP주소가 캐싱되어있으면 -> table 존재 -> data frame이므로 바로 전송
+            return this.GetUnderLayer(0).Send(temp, resultLength + 21);//데이터이므로 Ethernet Layer로 전달
+        }
+
+        //아니면 ARP 요청이므로 ARP Layer로 전달
+        return this.GetUnderLayer(1).Send(temp, resultLength + 21);
     }
 
     private byte[] ObjToByte21(_IP_Header ip_header, byte[] input, int length) { // 헤더 추가부분

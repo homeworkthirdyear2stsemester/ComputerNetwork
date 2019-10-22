@@ -66,18 +66,22 @@ public class ARPLayer implements BaseLayer {
         this.arp_Header.arp_srcaddr.ip_addr = ARPDlg.MyIPAddress; // 출발지 IP주소 = 내 IP주소
         byte[] targetip = Arrays.copyOfRange(input, 13, 17);
         byte[] myip = Arrays.copyOfRange(input, 17, 21);
-        if (Arrays.equals(targetip, myip)) {
+        if (Arrays.equals(targetip, myip)) { // g ARP : mac 주소 변경
             this.arp_Header.arp_srcaddr.mac_addr = ARPDlg.GratuitousAddress; // 출발지 맥주소 = 바뀐주소
             this.arp_Header.arp_dstaddr.ip_addr = ARPDlg.MyIPAddress; // 도착지 근원지IP주소 = 내 IP주소
             byte[] arp = ObjToByte_Send(arp_Header, (byte) 0x06, (byte) 0x01);
+
             return GetUnderLayer().Send(arp, arp.length);
         } else {
             this.arp_Header.arp_srcaddr.mac_addr = ARPDlg.MyMacAddress;
             this.arp_Header.arp_dstaddr.ip_addr = ARPDlg.TargetIPAddress;
-            // dst mac은 0
+
+            this.arp_Header.arp_dstaddr.mac_addr = new byte[6]; // 다시 0 으로 초기화 해서 잔료 데이터를 없애준다
+
             byte[] headerAddedArray = ObjToByte_Send(arp_Header, (byte) 0x06, (byte) 0x01);// ARP이고 요청인 헤더
             arp_table.put(byteArrayToString(ARPDlg.TargetIPAddress), new byte[1]);
             ARPDlg.updateARPTableToGUI();
+
             return this.GetUnderLayer().Send(headerAddedArray, headerAddedArray.length);
             // EthernetLayer의 send호출
         }
@@ -96,17 +100,9 @@ public class ARPLayer implements BaseLayer {
         byte[] dst_mac_address = Arrays.copyOfRange(input, 19, 25);
         byte[] dst_ip_address = Arrays.copyOfRange(input, 25, 29);
         // 리시브드
-        String a = byteArrayToString(src_mac_address);
+
         if (opcode[0] == 0x00 & opcode[1] == 0x01) {// ARP 요청 받음
-            Timer timer = new Timer(byteArrayToString(src_ip_address));
-            TimerTask task = new TimerTask() {
-                @Override
-                public void run() {
-                    arp_table.remove(Thread.currentThread().getName());
-                    ARPDlg.updateARPTableToGUI();
-                }
-            };
-            timer.schedule(task, 10000); // 10초로 지정
+            this.setTimer(src_ip_address);
             _ARP_HEADER response_header = new _ARP_HEADER();// 보낼 헤드 생성
             if (Arrays.equals(dst_ip_address, ARPDlg.MyIPAddress)) {// 내 ip로 온 경우 내 IP랑 헤더에 적힌 IP비교 -> 아닐경우 Proxy
                 response_header.arp_srcaddr.mac_addr = ARPDlg.MyMacAddress;// 내 mac주소 넣어준다.
@@ -118,7 +114,7 @@ public class ARPLayer implements BaseLayer {
                 this.arpCheckAndPut(src_ip_address, src_mac_address);
             } else {// 내 ip로 안옴
                 if (proxy_table.containsKey(byteArrayToString(dst_ip_address))) {// 연결된 proxy이다
-                    response_header.arp_srcaddr.mac_addr = dst_mac_address;// 여기다가 내 Mac주소 넣어준다. ***위에서 고쳐야함***
+                    response_header.arp_srcaddr.mac_addr = ARPDlg.MyMacAddress;// 여기다가 내 Mac주소 넣어준다. ***위에서 고쳐야함***
                     response_header.arp_srcaddr.ip_addr = dst_ip_address;
                     response_header.arp_dstaddr.mac_addr = src_mac_address;
                     response_header.arp_dstaddr.ip_addr = src_ip_address;
@@ -134,12 +130,25 @@ public class ARPLayer implements BaseLayer {
 
             return this.GetUnderLayer().Send(response_arp, response_arp.length);
         } else if (opcode[0] == 0x00 & opcode[1] == 0x02) {// 내가 보낸 ARP 요청이 돌아옴 (상대방이 주소를 넣어서 보냄)
+            this.setTimer(src_ip_address);
             arpCheckAndPut(src_ip_address, src_mac_address);
 
             return true;
         }
 
         return false;
+    }
+
+    private void setTimer(byte[] src_ip_address) {
+        Timer timer = new Timer(byteArrayToString(src_ip_address));
+        TimerTask task = new TimerTask() {
+            @Override
+            public void run() {
+                arp_table.remove(Thread.currentThread().getName());
+                ARPDlg.updateARPTableToGUI();
+            }
+        };
+        timer.schedule(task, 1000000); // 10초로 지정
     }
 
     public void arpCheckAndPut(byte[] src_ip_address, byte[] src_mac_address) {

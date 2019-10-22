@@ -18,8 +18,14 @@ public class TCPLayer implements BaseLayer {
 
     @Override
     public boolean Send(byte[] input, int length) {
-        byte[] tcpSegment = new byte[length + 24];
+        int resultLength = input.length;
+
+        byte[] tcpSegment = new byte[resultLength + 24];
         this.inputHeaderData(tcpSegment, input);
+
+        if (length == -1) {
+            return this.GetUnderLayer().Send(tcpSegment, -1);
+        }
 
         return this.GetUnderLayer().Send(tcpSegment, tcpSegment.length);
     }

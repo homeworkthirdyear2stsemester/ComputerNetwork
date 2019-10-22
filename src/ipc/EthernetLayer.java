@@ -196,9 +196,7 @@ public class EthernetLayer implements BaseLayer {
 
     private boolean isMyConnectionData(byte[] inputFrameData) {
         byte[] srcAddr = this.etherNetSrc();
-        byte[] dstAddr = this.etherNetDst();
-        return this.checkTheFrameData(dstAddr, inputFrameData, 6)
-                && this.checkTheFrameData(srcAddr, inputFrameData, 0);
+        return this.checkTheFrameData(srcAddr, inputFrameData, 0);
     }// 지금 받은 frame이 나랑 연결된 mac주소인지 판별
 
     private boolean isMyAddress(byte[] inputFrameData) {

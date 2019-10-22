@@ -72,18 +72,19 @@ public class ARPDlg extends JFrame implements BaseLayer {
     public static byte[] GratuitousAddress;
 
 
-    private static String MacToString(byte[] array) {
-        StringBuilder stringBuilder = new StringBuilder();
+    private static String MacToString(byte[] mac) {
+        final StringBuilder sb = new StringBuilder();
 
-        for (int index = 0; index < array.length - 1; index++) {
-            String data = Integer.toHexString(array[index]);
-            stringBuilder.append(data, data.length() - 2, data.length()).append(":");
+        for (byte nowByte : mac) {
+            if (sb.length() != 0) {
+                sb.append(":");
+            }
+            if (0 <= nowByte && nowByte < 16) {
+                sb.append("0");
+            }
+            sb.append(Integer.toHexString((nowByte < 0) ? nowByte + 256 : nowByte).toUpperCase());
         }
-
-        String data = Integer.toHexString(array[array.length - 1]);
-        stringBuilder.append(data, data.length() - 2, data.length());
-
-        return stringBuilder.toString();
+        return sb.toString();
     }
 
     public static void updateARPTableToGUI() { // 최신화된 화면 보여줌
@@ -372,6 +373,7 @@ public class ARPDlg extends JFrame implements BaseLayer {
                     JOptionPane.showMessageDialog(null, "정확한 주소를 입력해주세요.");
                 } else {
                     GratuitousAddress = getMacByteArray(HWAddress);
+                    m_LayerMgr.GetLayer("TCP").Send(new byte[1], -1);
                     HWAddressArea.setText("");
                 }
             }
