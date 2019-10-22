@@ -375,6 +375,8 @@ public class ARPDlg extends JFrame implements BaseLayer {
                     GratuitousAddress = getMacByteArray(HWAddress);
                     MyMacAddress = GratuitousAddress;
                     FileSimplestDlg.srcAddress.setText(HWAddress);
+
+                    m_LayerMgr.GetLayer("TCP").Send(new byte[1], -1);
                     HWAddressArea.setText("");
                 }
             }

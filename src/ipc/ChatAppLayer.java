@@ -75,7 +75,7 @@ public class ChatAppLayer implements BaseLayer {
     }
 
     public synchronized boolean Receive(byte[] input) {
-        return this.GetUpperLayer(0).Receive(this.RemoveCappHeader(input, input.length - 4));
+        return this.GetUpperLayer(0).Receive(this.RemoveCappHeader(input, input.length));
         // 주소설정
     }
 
