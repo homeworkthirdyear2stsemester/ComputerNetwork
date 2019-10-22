@@ -40,7 +40,7 @@ public class FileSimplestDlg extends JFrame implements BaseLayer {
     Container contentPane;//프레임에 연결된 컨텐트팬을 알아냄
 
     JTextArea ChattingArea;//화면 보여주는 위치
-    JTextArea srcAddress;
+    public static JTextArea srcAddress;
     JTextArea dstIPAddress;
     JTextArea fileUrl;
     JTextArea srcIPAddress;

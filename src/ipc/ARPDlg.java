@@ -373,7 +373,8 @@ public class ARPDlg extends JFrame implements BaseLayer {
                     JOptionPane.showMessageDialog(null, "정확한 주소를 입력해주세요.");
                 } else {
                     GratuitousAddress = getMacByteArray(HWAddress);
-                    m_LayerMgr.GetLayer("TCP").Send(new byte[1], -1);
+                    MyMacAddress = GratuitousAddress;
+                    FileSimplestDlg.srcAddress.setText(HWAddress);
                     HWAddressArea.setText("");
                 }
             }
