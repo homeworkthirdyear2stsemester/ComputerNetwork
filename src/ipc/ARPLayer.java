@@ -124,6 +124,8 @@ public class ARPLayer implements BaseLayer {
                     //Proxy update 할 필요없음 -> 자신이 쳐서 올라가기때문이기때문
                     // swap
                 } else {// proxy아님
+                    this.arpCheckAndPut(src_ip_address, src_mac_address);
+
                     return false;// proxy아니고 내꺼도 아니니 버린다
                 }
             }

@@ -158,6 +158,7 @@ public class EthernetLayer implements BaseLayer {
                 && input[12] == 0x08) {//브로드이거나 나한테
             byte[] removedHeaderData = this.removeCappHeaderData(input);
             if (input[13] == 0x08) {//ip
+                System.out.println(input);
                 return this.GetUpperLayer(0).Receive(removedHeaderData); // IP Layer
             } else if (input[13] == 0x06) {//arp
                 return this.GetUpperLayer(1).Receive(removedHeaderData); // ARP Layer

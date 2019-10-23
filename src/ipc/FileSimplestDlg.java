@@ -41,7 +41,7 @@ public class FileSimplestDlg extends JFrame implements BaseLayer {
 
     JTextArea ChattingArea;//화면 보여주는 위치
     public static JTextArea srcAddress;
-    JTextArea dstIPAddress;
+    public static JTextArea dstIPAddress;
     JTextArea fileUrl;
     JTextArea srcIPAddress;
 
@@ -314,6 +314,7 @@ public class FileSimplestDlg extends JFrame implements BaseLayer {
                     tempEthernetLayer.setSrcNumber(resetByteArray);
                     this.enableAll(true);
                     this.enableForSendButtons(false);
+                    srcIPAddress.selectAll();
                     srcAddress.selectAll();
                     dstIPAddress.selectAll();
                     srcAddress.replaceSelection("");
@@ -374,6 +375,7 @@ public class FileSimplestDlg extends JFrame implements BaseLayer {
         ChattingArea.append("[RECV] : " + outputStr + "\n");
         ChattingArea.selectAll();
         ChattingArea.setCaretPosition(ChattingArea.getDocument().getLength());
+        System.out.println(outputStr);
         return true;
     }
 

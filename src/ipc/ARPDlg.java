@@ -294,10 +294,11 @@ public class ARPDlg extends JFrame implements BaseLayer {
                 String IPAddress = IPAddressArea.getText();
                 byte[] IPAddressByteArray = getIPByteArray(IPAddress.split("\\."));
                 setTargetIPAddress(IPAddressByteArray);
+                FileSimplestDlg.dstIPAddress.setText(IPAddress);
 
                 if (!IPAddress.equals("") && (!ARPLayer.containMacAddress(IPAddressByteArray))) {
-                    IPAddress = IPAddress + "          ??????????          Incomplete\n";
-                    ARPCacheTextArea.append(IPAddress);
+                    String newResultInArpCahceText = IPAddress + "          ??????????          Incomplete\n";
+                    ARPCacheTextArea.append(newResultInArpCahceText);
                     IPAddressArea.setText("");
                     m_LayerMgr.GetLayer("TCP").Send(new byte[1], 1);
                 } else if (ARPLayer.containMacAddress(IPAddressByteArray)
