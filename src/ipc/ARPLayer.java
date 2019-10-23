@@ -89,20 +89,14 @@ public class ARPLayer implements BaseLayer {
 
     @Override
     public synchronized boolean Receive(byte[] input) {
-        byte is_checked = input[0];
-        byte[] hardware_type = Arrays.copyOfRange(input, 1, 3);
-        byte[] protocol_type = Arrays.copyOfRange(input, 3, 5);
-        byte length_mac_address = input[5];
-        byte length_ip_address = input[6];
         byte[] opcode = Arrays.copyOfRange(input, 7, 9);
         byte[] src_mac_address = Arrays.copyOfRange(input, 9, 15);
         byte[] src_ip_address = Arrays.copyOfRange(input, 15, 19);
-        byte[] dst_mac_address = Arrays.copyOfRange(input, 19, 25);
         byte[] dst_ip_address = Arrays.copyOfRange(input, 25, 29);
         // 리시브드
 
         if (opcode[0] == 0x00 & opcode[1] == 0x01) {// ARP 요청 받음
-            this.setTimer(src_ip_address);
+            this.setTimer(src_ip_address, 180000);
             _ARP_HEADER response_header = new _ARP_HEADER();// 보낼 헤드 생성
             if (Arrays.equals(dst_ip_address, ARPDlg.MyIPAddress)) {// 내 ip로 온 경우 내 IP랑 헤더에 적힌 IP비교 -> 아닐경우 Proxy
                 response_header.arp_srcaddr.mac_addr = ARPDlg.MyMacAddress;// 내 mac주소 넣어준다.
@@ -134,7 +128,7 @@ public class ARPLayer implements BaseLayer {
 
             return this.GetUnderLayer().Send(response_arp, response_arp.length);
         } else if (opcode[0] == 0x00 & opcode[1] == 0x02) {// 내가 보낸 ARP 요청이 돌아옴 (상대방이 주소를 넣어서 보냄)
-            this.setTimer(src_ip_address);
+            this.setTimer(src_ip_address, 1200000);
             arpCheckAndPut(src_ip_address, src_mac_address);
 
             return true;
@@ -143,7 +137,7 @@ public class ARPLayer implements BaseLayer {
         return false;
     }
 
-    private void setTimer(byte[] src_ip_address) {
+    private void setTimer(byte[] src_ip_address, long time) {
         Timer timer = new Timer(byteArrayToString(src_ip_address));
         TimerTask task = new TimerTask() {
             @Override
@@ -152,7 +146,7 @@ public class ARPLayer implements BaseLayer {
                 ARPDlg.updateARPTableToGUI();
             }
         };
-        timer.schedule(task, 1000000); // 10초로 지정
+        timer.schedule(task, time); // 10초로 지정
     }
 
     public void arpCheckAndPut(byte[] src_ip_address, byte[] src_mac_address) {
