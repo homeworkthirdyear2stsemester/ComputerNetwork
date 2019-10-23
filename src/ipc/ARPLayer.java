@@ -154,11 +154,20 @@ public class ARPLayer implements BaseLayer {
     }
 
     public void arpCheckAndPut(byte[] src_ip_address, byte[] src_mac_address) {
-        if (arp_table.containsKey(byteArrayToString(src_ip_address))) {
+        String stringIpAddress = byteArrayToString(src_ip_address);
+        if (arp_table.containsKey(stringIpAddress)) {
+            byte[] beforeMacAddress = arp_table.get(stringIpAddress);
+            Set<String> arpTableKeySet = arp_table.keySet();
+            for (String arpTableKey : arpTableKeySet) {
+                if (Arrays.equals(arp_table.get(arpTableKey), beforeMacAddress)) {
+                    arp_table.replace(arpTableKey, src_mac_address);
+                }
+            }
+
             arp_table.replace(byteArrayToString(src_ip_address), src_mac_address);
             ARPDlg.updateARPTableToGUI();
         } else {
-            arp_table.put(byteArrayToString(src_ip_address), src_mac_address);
+            arp_table.put(stringIpAddress, src_mac_address);
             ARPDlg.updateARPTableToGUI();
         }
     }
