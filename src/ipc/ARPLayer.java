@@ -153,13 +153,14 @@ public class ARPLayer implements BaseLayer {
         String stringIpAddress = byteArrayToString(src_ip_address);
         if (arp_table.containsKey(stringIpAddress)) {
             byte[] beforeMacAddress = arp_table.get(stringIpAddress);
-            Set<String> arpTableKeySet = arp_table.keySet();
-            for (String arpTableKey : arpTableKeySet) {
-                if (Arrays.equals(arp_table.get(arpTableKey), beforeMacAddress)) {
-                    arp_table.replace(arpTableKey, src_mac_address);
+            if (beforeMacAddress.length != 1) {
+                Set<String> arpTableKeySet = arp_table.keySet();
+                for (String arpTableKey : arpTableKeySet) {
+                    if (Arrays.equals(arp_table.get(arpTableKey), beforeMacAddress)) {
+                        arp_table.replace(arpTableKey, src_mac_address);
+                    }
                 }
             }
-
             arp_table.replace(byteArrayToString(src_ip_address), src_mac_address);
             ARPDlg.updateARPTableToGUI();
         } else {
